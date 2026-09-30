@@ -104,6 +104,14 @@ def _default_db() -> Path:
     the instant an answer is saved -- which looks exactly like the page
     'auto-refreshing and losing the answer'. Writing to a per-user data
     directory removes the trigger entirely."""
+    if os.environ.get("VERCEL") == "1" or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+        # Serverless: only /tmp is writable. DB resets on cold starts;
+        # permanent history needs an external store (see README).
+        try:
+            Path("/tmp").mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
+        return Path("/tmp/adelte.db")
     if os.name == "nt":
         base = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "ADELTE"
     elif sys.platform == "darwin":
@@ -5629,12 +5637,36 @@ async def lifespan(app: FastAPI):
     global CLIENT, STORE
     if STORE is None:                      # allows `uvicorn delta:app` too
         STORE = Store(CFG.db_path)
-    CLIENT = httpx.AsyncClient(
-        headers=HEADERS, follow_redirects=True,
-        timeout=httpx.Timeout(CFG.request_timeout, connect=9.0),
-        limits=httpx.Limits(max_connections=50, max_keepalive_connections=25))
+    if CLIENT is None:
+        CLIENT = httpx.AsyncClient(
+            headers=HEADERS, follow_redirects=True,
+            timeout=httpx.Timeout(CFG.request_timeout, connect=9.0),
+            limits=httpx.Limits(max_connections=50, max_keepalive_connections=25))
     yield
-    await CLIENT.aclose()
+    try:
+        await CLIENT.aclose()
+    except Exception:
+        pass
+    CLIENT = None
+
+
+def get_store() -> "Store":
+    """Lazy store for serverless cold starts where lifespan may lag."""
+    global STORE
+    if STORE is None:
+        STORE = Store(CFG.db_path)
+    return STORE
+
+
+async def get_client() -> httpx.AsyncClient:
+    """Lazy HTTP client for serverless cold starts."""
+    global CLIENT
+    if CLIENT is None:
+        CLIENT = httpx.AsyncClient(
+            headers=HEADERS, follow_redirects=True,
+            timeout=httpx.Timeout(CFG.request_timeout, connect=9.0),
+            limits=httpx.Limits(max_connections=50, max_keepalive_connections=25))
+    return CLIENT
 
 
 app = FastAPI(title="ADELTE Server", version="2.1.0", lifespan=lifespan,
@@ -5668,7 +5700,7 @@ def auth(authorization: Optional[str], x_api_key: Optional[str]) -> Optional[dic
         key = authorization[7:].strip()
     if not key:
         return None
-    ok, msg, info = STORE.use_key(key)
+    ok, msg, info = get_store().use_key(key)
     if not ok:
         raise HTTPException(401, msg)
     return info
@@ -5945,7 +5977,7 @@ async def integrations_status():
 
 @app.get("/api/stats")
 async def stats():
-    return {**STORE.stats(), "engine_health": ENGINE_HEALTH}
+    return {**get_store().stats(), "engine_health": ENGINE_HEALTH}
 
 
 @app.get("/api/check-keys")
@@ -6214,7 +6246,7 @@ class AdminActionReq(BaseModel):
 @app.get("/api/admin/accounts", tags=["admin"])
 async def admin_accounts():
     """Everyone who has ever registered, newest first."""
-    accts = STORE.all_accounts()
+    accts = get_store().all_accounts()
     return {"ok": True, "count": len(accts), "accounts": accts,
             "verified": sum(1 for a in accts if a["verified"])}
 
@@ -6222,15 +6254,30 @@ async def admin_accounts():
 @app.get("/api/admin/logins", tags=["admin"])
 async def admin_logins(limit: int = Query(300, ge=1, le=2000)):
     """The sign-in and registration log."""
-    rows = STORE.auth_log(limit)
+    rows = get_store().auth_log(limit)
     return {"ok": True, "count": len(rows), "logins": rows}
+
+
+@app.get("/api/admin/overview", tags=["admin"])
+async def admin_overview():
+    """One-glance dashboard: who registered, who logged in, usage totals."""
+    store = get_store()
+    accts = store.all_accounts()
+    logins = store.auth_log(200)
+    return {"ok": True,
+            "accounts": {"count": len(accts),
+                         "verified": sum(1 for a in accts if a["verified"]),
+                         "latest": accts[:10]},
+            "logins": {"count": len(logins), "latest": logins[:20]},
+            "stats": store.stats(),
+            "integrations": integration_status()}
 
 
 @app.post("/api/admin/verify", tags=["admin"])
 async def admin_verify(req: AdminActionReq):
     """Give or take away the verified badge."""
     try:
-        acct = STORE.set_verified(req.username,
+        acct = get_store().set_verified(req.username,
                                   True if req.verified is None else req.verified)
     except ValueError as e:
         raise HTTPException(404, str(e))
@@ -6240,7 +6287,7 @@ async def admin_verify(req: AdminActionReq):
 @app.delete("/api/admin/account/{username}", tags=["admin"])
 async def admin_delete(username: str):
     """Delete an account and its key."""
-    if not STORE.delete_account(username):
+    if not get_store().delete_account(username):
         raise HTTPException(404, "no account called " + username)
     return {"ok": True, "deleted": username}
 
