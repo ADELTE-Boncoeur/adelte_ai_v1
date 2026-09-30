@@ -1,0 +1,17 @@
+# Secrets - never commit
+.env
+adelte.env
+new_api
+*.db
+*.db-wal
+*.db-shm
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
