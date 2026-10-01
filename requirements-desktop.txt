@@ -1,0 +1,9 @@
+# Cargolis Desktop — Siri outside the browser.
+# Core chat/search/screen-send works with the standard library only.
+# Each extra line unlocks one sense. Install what you want:
+pyttsx3                 # voice OUT (offline, Windows SAPI) — talk back aloud
+SpeechRecognition       # voice IN (mic) — talk to it
+pynput                  # global hotkey Ctrl+Alt+A anywhere on the PC
+pystray                 # system tray icon with Talk / See screen / Quit
+mss                     # fast screenshots — its eyes
+pillow                  # image handling for screenshots + tray icon

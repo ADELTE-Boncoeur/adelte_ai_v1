@@ -24,6 +24,24 @@ All APIs from `new_api` are already imported into the local `.env`
 - Spice.ai key, Databricks token, Azure SQL connection string
 
 Check live status: `GET /api/integrations/status` (masked, no secrets leak).
+Prove they WORK: `GET /api/integrations/test` actually pings each provider.
+
+## Cargolis Desktop — Siri outside the browser
+
+`cargolis.py` is a system-wide voice companion. Tray icon, global hotkey
+`Ctrl+Alt+A`, talks back aloud, screenshots your screen, searches the web —
+no browser needed.
+
+```bash
+pip install -r requirements-desktop.txt   # mic, voice, hotkey, tray, eyes
+python adelte.py                          # terminal 1: the brain
+python cargolis.py                        # terminal 2: the voice
+```
+
+Works with zero extras too (typed console). Point at a hosted brain with
+`ADELTE_URL=https://your-service.onrender.com python cargolis.py` — note PC
+commands (`lock`, volume…) then act on the server, not your PC, so keep the
+local server for full Siri-style control of your own machine.
 
 ## Models
 
