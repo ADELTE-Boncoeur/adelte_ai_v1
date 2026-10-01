@@ -7984,6 +7984,12 @@ def main() -> None:
                     help="how many result pages to read in full (default 4)")
     a = ap.parse_args()
 
+    # Hosts like Render/Railway/Fly assign the port via $PORT. A CLI flag
+    # always wins; otherwise $PORT wins over the 8000 default, so the same
+    # repo boots locally AND on hosted platforms with zero extra config.
+    _env_port = os.environ.get("PORT", "").strip()
+    if a.port == CFG.port and _env_port.isdigit():
+        a = argparse.Namespace(**{**vars(a), "port": int(_env_port)})
     CFG.host, CFG.port = a.host, a.port
     CFG.db_path = Path(a.db)
     CFG.use_ai = not a.no_ai
