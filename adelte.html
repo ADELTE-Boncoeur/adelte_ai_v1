@@ -5366,28 +5366,61 @@ var AX_PROMPTS=[
 {'fix':['Printer','Printer offline on Windows — fix it']},
 {'fix':['Battery drain','Laptop battery drains fast — find the cause on Windows']}]];
 
+function axFavs(){
+  try{return JSON.parse(localStorage.getItem('ax_favs')||'[]');}
+  catch(e){return [];}
+}
+function axIsFav(t){return axFavs().indexOf(t)>-1;}
+function axToggleFav(t){
+  try{
+    var f=axFavs(), i=f.indexOf(t);
+    if(i>-1) f.splice(i,1); else f.push(t);
+    localStorage.setItem('ax_favs',JSON.stringify(f));
+  }catch(e){}
+  axDrawPrompts();
+}
 function axRenderPrompts(){
   var box=$('promptlib'); if(!box) return;
   if(!$('axpromptq')){
+    var wrap=document.createElement('div');
+    wrap.style.cssText='display:flex;gap:6px;margin-bottom:7px';
     var inp=document.createElement('input');
-    inp.id='axpromptq'; inp.placeholder='Filter 300+ prompts…';
-    inp.style.cssText='width:100%;background:var(--bg);border:1px solid var(--line);'+
-      'border-radius:9px;padding:7px 10px;color:var(--tx);font-size:12px;margin-bottom:7px';
+    inp.id='axpromptq'; inp.placeholder='Filter prompts…';
+    inp.style.cssText='flex:1;background:var(--bg);border:1px solid var(--line);'+
+      'border-radius:9px;padding:7px 10px;color:var(--tx);font-size:12px';
     inp.oninput=axDrawPrompts;
-    box.parentNode.insertBefore(inp,box);
+    var fav=document.createElement('button');
+    fav.id='axfavonly'; fav.className='btn'; fav.title='Show starred only';
+    fav.style.cssText='width:auto;padding:7px 12px;flex:none';
+    fav.textContent='★';
+    fav.onclick=function(){
+      var on=fav.dataset.on==='1';
+      fav.dataset.on=on?'':'1';
+      fav.style.borderColor=on?'':'var(--violet)';
+      axDrawPrompts();
+    };
+    wrap.appendChild(inp); wrap.appendChild(fav);
+    box.parentNode.insertBefore(wrap,box);
   }
   axDrawPrompts();
 }
 function axDrawPrompts(){
   var box=$('promptlib'); if(!box) return;
   var q=(($('axpromptq')||{}).value||'').toLowerCase(), n=0, h='';
+  var favOnly=($('axfavonly')||{}).dataset;
+  favOnly=favOnly&&favOnly.on==='1';
   AX_PROMPTS.forEach(function(group){
     group.forEach(function(p){
       var k=Object.keys(p)[0], title=p[k][0]||'', text=p[k][1]||'';
+      if(favOnly&&!axIsFav(text)) return;
       if(q&&(k+' '+title+' '+text).toLowerCase().indexOf(q)<0) return;
       n++;
-      h+='<button class="prompt" data-p="'+esc(text)+'"><span class="pk">'+
-        esc(k)+'</span><b>'+esc(title.slice(0,26))+'</b>'+
+      h+='<button class="prompt" data-p="'+esc(text)+'">'+
+        '<span class="pk">'+esc(k)+'</span>'+
+        '<span class="axstar" data-f="'+esc(text)+'" title="Star" style="'+
+        'float:right;cursor:pointer;color:'+
+        (axIsFav(text)?'var(--warn)':'var(--tx3)')+'">★</span>'+
+        '<b>'+esc(title.slice(0,26))+'</b>'+
         esc(text.slice(0,64))+'</button>';
     });
   });
@@ -5396,6 +5429,11 @@ function axDrawPrompts(){
   if(pc) pc.textContent=n;
   box.querySelectorAll('.prompt').forEach(function(b){
     b.onclick=function(){ setComposer(b.dataset.p); toastm('Prompt loaded — press Enter'); };
+  });
+  box.querySelectorAll('.axstar').forEach(function(s){
+    s.onclick=function(e){
+      e.stopPropagation(); axToggleFav(s.dataset.f);
+    };
   });
 }
 
@@ -6077,7 +6115,17 @@ var AX_MANUAL=[
 'Thin code → say continue; empty reply → retry, the swarm queues.',
 'Page reloads on answer → you opened adelte.html via a watcher; use http://localhost:8000.',
 'Mic dead → Chrome/Edge + HTTPS/localhost; typing always works.',
-'102 narrowing: check /api/health first — status ok means the app is fine and the fault is upstream.']}];
+'102 narrowing: check /api/health first — status ok means the app is fine and the fault is upstream.']},
+{t:'11 · Voice & ears',b:[
+'Browser voice needs Chrome/Edge on localhost or HTTPS; the mic button falls back to typing.',
+'Desktop voice is offline for speech-out and needs only internet for speech-in.',
+'Per-message Speak reads one answer; the Voice toggle reads every answer automatically.',
+'Noisy room? Type — every voice path has a keyboard twin.']},
+{t:'12 · Updates & safety',b:[
+'Update with git pull and restart; the database migrates itself forward.',
+'Never commit .env or new_api — the .gitignore already excludes both.',
+'Rotate any key that ever touched chat, screenshots or logs.',
+'Back up the .db file before major updates; it holds chats, keys and accounts.']}];
 /* ---------------- tutorials: 10 guided lessons -------------------------- */
 var AX_TUTS=[
 {t:'Deploy on Render',s:[['Create the service','Blueprint render.yaml is in the repo — Render reads it. Or manual: build pip install -r requirements.txt, start python adelte.py --host 0.0.0.0.'],['Add the keys','Environment tab → add the 12 vars from your local .env, exact names.'],['Ship it','Manual Deploy → latest commit. Open /api/health, then /api/integrations/status.']]},
@@ -6089,7 +6137,11 @@ var AX_TUTS=[
 {t:'Master Commander',s:[['Safe first','Try specs, battery, uptime — read-only, instant.'],['Open things','open youtube / play lofi beats / search quantum.'],['Power','lock pc now; shutdown-class ops ask first. --no-system disables all.']]},
 {t:'Cargolis voice setup',s:[['Install ears','pip install -r requirements-desktop.txt for mic + voice + hotkey + tray.'],['Talk anywhere','python cargolis.py, then Ctrl+Alt+A from any window.'],['Show it bugs','"See my screen" on an error → spoken cause + full fix.']]},
 {t:'Prompt like a pro',s:[['Be concrete','Stack + features + constraints beats "make a website".'],['One job per message','Research, then build, then refine — chains stay sharp.'],['Steal starters','Prompt library → 200 starters; palette → fuzzy-find them.']]},
-{t:'Debug with ADELTE',s:[['Paste the traceback','Cargolis or chat, task=fix: cause in one paragraph.'],['Get the full fix','Never a snippet — the entire corrected file.'],['Lock it in','"How do I prevent this next time" → checklist.']]}];
+{t:'Debug with ADELTE',s:[['Paste the traceback','Cargolis or chat, task=fix: cause in one paragraph.'],['Get the full fix','Never a snippet — the entire corrected file.'],['Lock it in','"How do I prevent this next time" → checklist.']]},
+{t:'Keyboard master',s:[['Palette first','Ctrl+K finds everything: type 2 letters of anything.'],['Message hops','j/k move between answers without touching the mouse.'],['Send fast','Enter sends; Shift+Enter keeps writing.'],[' Bail out','Esc closes palette, help and cook views.']]},
+{t:'Theme your space',s:[['Accent in one tap','Settings → Accent theme: 7 moods, saved per browser.'],['Bigger text','A+ grows everything to 20px; A− shrinks to 12px.'],['Contrast','High-contrast toggle for bright rooms and tired eyes.'],['Your photo','Account strip → upload: your face on every session.']]},
+{t:'Export everything',s:[['Under-chat buttons','Export .md / .txt / .json download the whole chat.'],['Per-message copy','Each bubble copies clean text, no chrome.'],['Speak it','Per-message Speak reads just that answer aloud.'],['Share it','Send the .md file — no accounts needed anywhere.']]},
+{t:'Use the API',s:[['One call','POST /api/chat with message returns answer + sources.'],['Stream it','POST /api/chat/stream for live token events.'],['Key it','Mint a key, pass as x-api-key header.'],['Pin a brain','Add brain:"provider:model" to any chat call.']]}];
 /* ---------------- build gallery: 30 specced starters -------------------- */
 var AX_GAL=[
 ['Neon login','HTML·CSS','Validation, strength meter, dark mode, caps-lock warn',3053,'linear-gradient(135deg,#4F46E5,#7C3AED)'],
@@ -6121,7 +6173,17 @@ var AX_GAL=[
 ['Stopwatch','HTML·JS','Laps table, export',3079,'linear-gradient(135deg,#7C2D12,#EA580C)'],
 ['Dice roller','HTML·JS','D4–D20, history',3080,'linear-gradient(135deg,#991B1B,#EF4444)'],
 ['Color picker','HTML·JS','HEX/RGB/HSL, palette save',3081,'linear-gradient(135deg,#00E5FF,#A855F7,#FF2D95)'],
-['Typing test','HTML·JS','WPM, accuracy, restart',3082,'linear-gradient(135deg,#312E81,#6D28D9)']];
+['Typing test','HTML·JS','WPM, accuracy, restart',3082,'linear-gradient(135deg,#312E81,#6D28D9)'],
+['Flash math','HTML·JS','Drills, timer, best score',3113,'linear-gradient(135deg,#1E40AF,#60A5FA)'],
+['Color match','HTML·JS','Name that hex, 3 lives',3114,'linear-gradient(135deg,#9D174D,#F472B6)'],
+['Simon keys','HTML·JS','Repeat the sequence, levels',3115,'linear-gradient(135deg,#065F46,#34D399)'],
+['Memory pairs','HTML·JS','Flip and match, move counter',3116,'linear-gradient(135deg,#7C2D12,#FBBF24)'],
+['Snake mini','HTML·JS','Arrow keys, apples, speed up',3117,'linear-gradient(135deg,#14532D,#4ADE80)'],
+['Pong solo','HTML·JS','Mouse paddle, rally counter',3118,'linear-gradient(135deg,#0C4A6E,#38BDF8)'],
+['Breakout','HTML·JS','Bricks, lives, win screen',3119,'linear-gradient(135deg,#6B21A8,#E879F9)'],
+['Mines hint','HTML·JS','Safe-first-click minesweeper',3120,'linear-gradient(135deg,#334155,#94A3B8)'],
+['TicTacToe AI','HTML·JS','Unbeatable minimax mode',3121,'linear-gradient(135deg,#991B1B,#F87171)'],
+['Rock paper','HTML·JS','Streaks vs the computer',3122,'linear-gradient(135deg,#92400E,#FBBF24)']];
 
 /* ---------------- wave 3: prompts +120, faq +40, flows +10 ---------------- */
 AX_PROMPTS.push(
@@ -6246,7 +6308,88 @@ AX_PROMPTS.push(
 {'parent':['First day','First day of school pep talk + checklist']},
 {'parent':['Grandparents','Video-call games with grandparents, 10 ideas']}]);
 
-/* ---------------- wave 3: faq +40 ---------------------------------------- */
+/* ---------------- restore: mail/social/school/travel packs (80) ------------- */
+AX_PROMPTS.push(
+[{'mail':['Thank you','Thank-you email after a favour, warm and short']},
+{'mail':['Reschedule','Reschedule a meeting politely with 2 new slots']},
+{'mail':['Intro','Introduce two people by email with context both ways']},
+{'mail':['Follow-up','Third follow-up that still gets replies']},
+{'mail':['Welcome','Welcome email for a new community member']},
+{'mail':['Goodbye team','Farewell email to colleagues, grateful tone']},
+{'mail':['Sick day','Sick-day message to my boss, professional']},
+{'mail':['Quote request','Ask a vendor for a quote with specs attached note']},
+{'mail':['Complaint','Firm complaint about a late delivery that gets action']},
+{'mail':['Review ask','Ask a happy customer for a review without begging']},
+{'mail':['Newsletter','Monthly update email structure with example lines']},
+{'mail':['Out of office','Out-of-office replies: formal, funny, freelancer']},
+{'mail':['RSVP','Accept a wedding invite with dietary note']},
+{'mail':['Decline','Decline an event graciously, keep the invite coming']},
+{'mail':['Congrats','Congratulate a promotion with one memorable line']},
+{'mail':['Condolence','Short sincere condolence message']},
+{'mail':['Ask raise','Email asking for a salary review meeting']},
+{'mail':['Reference req','Ask an ex-boss to be a reference']},
+{'mail':['Mentor thanks','Thank a mentor specifically, not generically']},
+{'mail':['Bug report','Report a bug to support so it gets fixed fast']}],
+[{'social':['Launch post','Announce my app launch on X in 240 characters']},
+{'social':['Thread','Turn my blog post into 5 tweets: ']},
+{'social':['Bio','Twitter bio for a student dev, 3 options']},
+{'social':['LinkedIn post','Lessons-learned post about my internship']},
+{'social':['Caption','Instagram caption for a sunset hike photo']},
+{'social':['Hashtags','Hashtag sets for a food post, 3 tiers']},
+{'social':['Reply guy','Witty reply to an AI-takes-jobs post']},
+{'social':['Poll','Poll question that gets votes + why it works']},
+{'social':['AMA','Host an AMA: announcement + 5 seed questions']},
+{'social':['Milestone','Celebrate 1000 followers without bragging']},
+{'social':['Apology post','Brand apology post that actually lands']},
+{'social':['Teaser','Tease Friday launch all week: 5 posts']},
+{'social':['Meme text','Meme caption about Monday standups']},
+{'social':['CTA','End posts with CTAs that get clicks, 7 formulas']},
+{'social':['Story Q','Instagram story question sticker ideas, 10']},
+{'social':['Live promo','Promote my livestream 24h before, twice']},
+{'social':['Giveaway','Giveaway rules post that grows followers safely']},
+{'social':['Niche meme','Explain my niche with a meme format pick']},
+{'social':['DM pitch','Cold DM for collab, short and human']},
+{'social':['Pinned','Write my pinned post: who I help and proof']}],
+[{'school2':['Thesis','Turn my essay topic into a one-sentence thesis: ']},
+{'school2':['Citation','Cite a website in APA vs MLA with examples']},
+{'school2':['Outline','Outline a 1000-word essay on social media effects']},
+{'school2':['Conclusion','Write a conclusion that does not repeat the intro']},
+{'school2':['Peer review','Review a classmate draft kindly but honestly']},
+{'school2':['Presentation','5-slide structure for any class talk']},
+{'school2':['Group work','Split group work fairly: roles + messages to send']},
+{'school2':['Exam nerves','Calm down before exams: 5-minute routine']},
+{'school2':['Flashcards','Make flashcards for biology terms that stick']},
+{'school2':['Mind map','Mind-map the French Revolution on one page']},
+{'school2':['Speed read','Skim a chapter in 15 minutes and keep the ideas']},
+{'school2':['Notes system','Cornell notes explained with a filled example']},
+{'school2':['Procrastinate','Beat procrastination with 2-minute starts']},
+{'school2':['Grade appeal','Appeal a grade respectfully: email + talking points']},
+{'school2':['Scholarship','Scholarship essay: story structure that wins']},
+{'school2':['Dorm cook','5 dorm-room meals with a kettle + microwave']},
+{'school2':['Budget student','Monthly student budget template with numbers']},
+{'school2':['Part-time','Cover letter for a cafe job, no experience']},
+{'school2':['Learn coding','First 30 days learning Python, daily 30 min']},
+{'school2':['Finals week','Survive finals week: sleep, food, plan']}],
+[{'travel2':['Pack light','7kg one-bag packing list for 2 weeks']},
+{'travel2':['Jet lag','Beat jet lag eastward: light + sleep schedule']},
+{'travel2':['Cheap flights','Find cheap flights: 6 rules that actually work']},
+{'travel2':['Solo safety','Solo travel safety: 10 habits']},
+{'travel2':['Itinerary Rome','3 days in Rome: day-by-day with costs']},
+{'travel2':['Itinerary Tokyo','First-timer Tokyo in 4 days']},
+{'travel2':['Visa letter','Write a visa cover letter that gets approved']},
+{'travel2':['Travel insurance','What travel insurance must cover: checklist']},
+{'travel2':['Hostel pick','Pick a good hostel: 8 filters']},
+{'travel2':['Food safety','Street food rules that keep you healthy']},
+{'travel2':['Learn phrases','15 phrases that unlock any country']},
+{'travel2':['Money abroad','Cash vs card abroad: the fee-smart setup']},
+{'travel2':['Scams','10 tourist scams and the one-line defence each']},
+{'travel2':['Road trip','Plan a 1000km road trip: budget + stops math']},
+{'travel2':['Camping list','First camping trip kit under $150']},
+{'travel2':['Beach day','Perfect beach day packing list']},
+{'travel2':['Hiking prep','Day-hike 10 essentials + blister fixes']},
+{'travel2':['Photos','Take better travel photos with a phone: 7 rules']},
+{'travel2':['Souvenirs','Souvenirs worth buying vs tourist traps']},
+{'travel2':['Home ready','Leave home for a month: shutdown checklist']}]);
 AX_FAQ.push(
 ['How do I pin one model?','Direct brain picker in sidebar or composer — Free group needs no key.'],
 ['Which free brains exist?','Horde swarm plus every :free OpenRouter model. They rotate automatically.'],
@@ -6286,7 +6429,17 @@ AX_FAQ.push(
 ['Copy an answer?','Per-message Copy button under every bubble.'],
 ['Hear an answer?','Per-message Speak button, or Voice toggle for auto-read.'],
 ['Word counts?','Per-message Words button + live composer counter.'],
-['Share a chat?','Export .md and send the file — no accounts needed on the other end.']);
+['Share a chat?','Export .md and send the file — no accounts needed on the other end.'],
+['What is the tour?','Type tour in the composer for a 5-step spotlight walkthrough.'],
+['How do stars work?','Star any prompt to keep it; the star button filters to starred only.'],
+['Can I search prompts?','Yes — the filter box searches all 380 starters instantly.'],
+['How do I filter gallery?','The Gallery tab filter matches title, stack and features.'],
+['Run a PC command from help?','Command tab Run buttons act on the server machine.'],
+['Copy an API call?','Every Copy button in Cheats and Command tabs uses the clipboard.'],
+['How do I see all models?','Help Models tab, Direct brain picker, palette, or /api/models/raw.'],
+['Which brain is free?','Direct brain Free group: Horde plus OpenRouter free models.'],
+['How do I know who answered?','The thinking panel narrates every brain tried and the winner.'],
+['Does it work on localhost only?','Default bind is localhost; nothing leaves except engine and provider calls.']);
 
 /* ---------------- wave 3: flows +10, snips +24, cook +16, gallery +30 ---- */
 AX_FLOWS.push(
@@ -6299,7 +6452,13 @@ AX_FLOWS.push(
 {n:'Photography basics',d:'Manual mode in a week.',s:['Aperture vs shutter vs ISO, finally clear','First 3 lenses explained simply','Golden hour plan for Saturday','Edit free: 5-slider method','Critique my photo: what to fix — ']},
 {n:'Public speaking',d:'No more shaky hands.',s:['Open with 3 hook types + examples','Structure any talk in 10 minutes','Slow down: 3 pacing drills','Handle hostile Q&A calmly','Dry-run checklist night before']},
 {n:'Save $1000',d:'90-day challenge.',s:['Find your leaks: 7-day audit','Cut 3 subscriptions painlessly','Meal-plan 4 dinners that repeat','No-spend weekend rules','Where to park the $1000 safely']},
-{n:'Teach a kid code',d:'Scratch to Python.',s:['First Scratch project in 20 minutes','5 unplugged games that teach loops','Move to Python turtle: first drawing','Debug together without taking over','Showcase night: present the game']});
+{n:'Teach a kid code',d:'Scratch to Python.',s:['First Scratch project in 20 minutes','5 unplugged games that teach loops','Move to Python turtle: first drawing','Debug together without taking over','Showcase night: present the game']},
+{n:'Water reset',d:'Drink enough without thinking.',s:['How much: weight-based formula with example','Anchor glasses to 3 existing habits','Taste better: 3 cheap upgrades','Track with ticks, not apps','Eating out: default water rule']},
+{n:'Inbox zero',d:'Empty inbox, calm mind.',s:['Archive sweep: 20-minute first pass','Unsubscribe 10 with one search trick','Filters for receipts and newsletters','2-minute reply rule, twice daily','End-of-day shutdown sentence']},
+{n:'Learn touch typing',d:'60 wpm in 30 days.',s:['Home row test: where are you now','15 minutes daily on keybr-style drills','Stop looking: cover hands week 2','Numbers row without fear','Measure: 1-minute test Fridays']},
+{n:'Balcony garden 2',d:'Level up: vertical growing.',s:['Trellis peas and beans this weekend','Herb wall from pallets, safe build','Self-watering bottles that work','Feed schedule: one tea, weekly','Save seeds: dry, label, store']},
+{n:'Car upkeep',d:'Never stranded.',s:['Monthly 5-minute checks: fluids, tyres, lights','Tyre pressure from the door sticker, not the tyre','Jump-start safely in 6 steps','Warning lights decoded: 8 common ones','Service intervals that save money']},
+{n:'Gift wrapping',d:'Look like a pro.',s:['Measure once: the diagonal trick','Crisp corners in 4 folds','Ribbon bow without tools','Wrap odd shapes: pouches win','Tag lines that feel personal']});
 AX_SNIPS.push(
 ['Python · csv read','python','import csv\nwith open("data.csv", encoding="utf-8") as f:\n    rows = list(csv.DictReader(f))\nprint(len(rows), "rows")'],
 ['Python · json save','python','import json\njson.dump({"ok": True}, open("out.json", "w"), indent=2)'],
@@ -6324,7 +6483,14 @@ AX_SNIPS.push(
 ['PowerShell · env','powershell','$env:PORT="8000"\npython adelte.py'],
 ['PowerShell · zip','powershell','Compress-Archive -Path .\\dist\\* -DestinationPath app.zip'],
 ['Git · temp branch','bash','git stash push -m wip\ngit checkout -b try-x'],
-['YAML · compose2','yaml','services:\n  db:\n    image: postgres:16\n    volumes: [pg:/var/lib/postgresql/data]\nvolumes:\n  pg:']);
+['YAML · compose2','yaml','services:\n  db:\n    image: postgres:16\n    volumes: [pg:/var/lib/postgresql/data]\nvolumes:\n  pg:'],
+['Python · flatten2','python','flat = lambda xs: [y for x in xs for y in (flat(x) if isinstance(x, list) else [x])]'],
+['JS · once','javascript','const once = (fn) => {\n  let done = false;\n  return (...a) => done ? undefined : (done = true, fn(...a));\n};'],
+['CSS · center2','css','.c { display: flex; align-items: center; justify-content: center; }'],
+['SQL · recent','sql','SELECT * FROM posts\nWHERE created_at > now() - interval \'7 days\';'],
+['Bash · ports','bash','ss -tulpn | grep LISTEN'],
+['PowerShell · biggest','powershell','Get-ChildItem -Recurse | Sort-Object Length -Descending | Select-Object -First 5'],
+['Git · tag','bash','git tag v1.0.0\ngit push origin v1.0.0']);
 AX_COOK.push(
 ['Stream tokens','POST /api/chat/stream SSE','{"message":"hi"}',''],
 ['Chat deep off','POST /api/chat','{"message":"news","deep":false}',''],
@@ -6667,7 +6833,13 @@ var AX_COOK=[
 ['Login','POST /api/auth/login','{"username":"bon","password":"secret123"}', ''],
 ['Mint key','POST /api/keys/generate','{"label":"my app"}', 'curl -X POST localhost:8000/api/keys/generate -H "Content-Type: application/json" -d \'{"label":"my app"}\''],
 ['Admin view','GET /api/admin/overview','', 'curl localhost:8000/api/admin/overview'],
-['Logo','GET /logo.svg','', 'curl localhost:8000/logo.svg -o logo.svg']];
+['Logo','GET /logo.svg','', 'curl localhost:8000/logo.svg -o logo.svg'],
+['Models raw','GET /api/models/raw','','curl localhost:8000/api/models/raw'],
+['Histories','GET /api/history?sid=','','curl "localhost:8000/api/history?sid=X"'],
+['Wipe session','POST /api/clear','{"session_id":"X"}',''],
+['Verify','POST /api/admin/verify','{"username":"u","verified":true}',''],
+['Stats','GET /api/stats','','curl localhost:8000/api/stats'],
+['Social','GET /api/social','','curl localhost:8000/api/social']];
 
 /* ---------------- per-message copy + speak ------------------------------ */
 function axMsgBar(m){
