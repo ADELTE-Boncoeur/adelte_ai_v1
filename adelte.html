@@ -1379,6 +1379,21 @@ input.sw:checked::after{transform:translateX(17px)}
   <symbol id="i-volume" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9a4 4 0 0 1 0 6"/></symbol>
   <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></symbol>
   <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H7l-4 3V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8z"/></symbol>
+  <symbol id="adelte-mark" viewBox="0 0 128 128">
+    <defs><linearGradient id="agx" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00E5FF"/><stop offset=".52" stop-color="#A855F7"/>
+      <stop offset="1" stop-color="#FF2D95"/></linearGradient>
+      <radialGradient id="aox" cx=".5" cy=".42" r=".55">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity=".95"/>
+      <stop offset=".45" stop-color="#C4B5FD"/><stop offset="1" stop-color="#4C1D95"/>
+      </radialGradient></defs>
+    <polygon points="64,6 114,35 114,93 64,122 14,93 14,35" fill="none"
+      stroke="url(#agx)" stroke-width="7" stroke-linejoin="round"/>
+    <circle cx="64" cy="64" r="30" fill="url(#aox)"/>
+    <circle cx="52" cy="52" r="9" fill="#FFFFFF" opacity=".55"/>
+    <path d="M64 44 L78 88 M64 44 L50 88 M57 66 h14" stroke="#0B0D17"
+      stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </symbol>
 </defs>
 </svg>
 
@@ -1387,7 +1402,7 @@ input.sw:checked::after{transform:translateX(17px)}
   <!-- ============================ SIDEBAR ============================ -->
   <aside class="side" id="side">
     <div class="brand">
-      <svg class="logo"><use href="#delta"/></svg>
+      <svg class="logo"><use href="#adelte-mark"/></svg>
       <div><div class="bname">ADELTE</div><div class="btag">ADELTE Industries</div></div>
     </div>
 
@@ -1439,6 +1454,50 @@ input.sw:checked::after{transform:translateX(17px)}
           <div class="histlist" id="histlist"></div>
           <button class="btn" id="histnew">
             <svg class="i"><use href="#i-plus"/></svg>New chat</button>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sech">
+          <svg class="i"><use href="#i-spark"/></svg>Direct brain
+          <span class="secn" id="braincount">0</span>
+        </div>
+        <div class="card">
+          <p>Skip the chain and talk to <b>any single engine</b> directly.
+             The ADELTE model still sets the style — the brain sets the muscle.</p>
+          <label class="fld">
+            <span>Engine override</span>
+            <select id="brainpick" title="Use any connected model directly">
+              <option value="">Auto (model chain)</option>
+            </select>
+          </label>
+          <div class="keymsg" id="brainnote">Auto: the model's full chain decides.</div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sech">
+          <svg class="i"><use href="#i-plug"/></svg>Integrations
+          <span class="secn" id="integcount">0</span>
+        </div>
+        <div class="card">
+          <p>Every API key on the server, with its badge. Green answers,
+             grey is skipped — nothing breaks either way.</p>
+          <div class="integlist" id="integlist"></div>
+          <button class="btn" id="integtest">
+            <svg class="i"><use href="#i-play"/></svg>Test all live</button>
+          <div class="keymsg" id="integmsg"></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sech">
+          <svg class="i"><use href="#i-book"/></svg>Prompt library
+          <span class="secn" id="promptcount">0</span>
+        </div>
+        <div class="card">
+          <p>Tap a card — it lands in the composer ready to send.</p>
+          <div class="promptlib" id="promptlib"></div>
         </div>
       </div>
 
@@ -1512,7 +1571,7 @@ input.sw:checked::after{transform:translateX(17px)}
     <div class="chat" id="chat">
       <div class="inner" id="inner">
         <div class="hero" id="hero">
-          <svg class="hlogo"><use href="#delta"/></svg>
+          <svg class="hlogo"><use href="#adelte-mark"/></svg>
           <div class="h1">Ask anything. ADELTE digs.</div>
           <p class="hsub">Ask a question and I research it across ten keyless engines.
              Ask me to build something and I write it. Give me a command and I run it.</p>
@@ -2293,7 +2352,7 @@ async function send(){
     const res=await fetch(api('/api/chat/stream'),{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({message:q,session_id:SID,deep:DEEP,use_memory:MEM,
-        model:MODEL,max_results:SETTINGS.max||8,ai_budget:AION?(SETTINGS.budget||50):0})
+        model:MODEL,brain:(window.ADELTE_BRAIN||''),max_results:SETTINGS.max||8,ai_budget:AION?(SETTINGS.budget||50):0})
     });
     if(!res.ok){
       if([405,501,404].includes(res.status)) throw new Error('WRONG_SERVER:'+res.status);
@@ -4735,5 +4794,2053 @@ else ADELTE_DESK();
   <div class="csbmeta" id="csbmeta"></div>
 </aside>
 
+<style>
+/* ============================================================
+   ADELTE X — new design layer (additive: nothing above is touched)
+   Badges, direct-brain, integrations, prompt library, palette,
+   themes, export, help overlay, admin overview, motion pack.
+   ============================================================ */
+:root{
+  --ax1:#00E5FF; --ax2:#A855F7; --ax3:#FF2D95;
+  --axcard:var(--panel); --axline:var(--line);
+}
+/* ---- provider badges: original initial-marks in house colours ---- */
+.pbadge{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;
+  font-weight:700;padding:3px 8px 3px 3px;border-radius:99px;
+  border:1px solid var(--line);background:var(--bg);color:var(--tx2);
+  margin:2px 3px 2px 0;white-space:nowrap;transition:.16s}
+.pbadge:hover{transform:translateY(-1px)}
+.pbadge .pm{width:18px;height:18px;border-radius:50%;display:grid;
+  place-items:center;font-size:8px;font-weight:800;color:#fff;flex:none;
+  overflow:hidden;position:relative}
+.pbadge .pm img{position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;background:#fff}
+.pbadge.off{opacity:.42;filter:grayscale(.8)}
+.pbadge.big{font-size:11.5px;padding:4px 10px 4px 4px}
+.pbadge.big .pm{width:22px;height:22px;font-size:9px}
+.chain .lnk{display:inline-flex;align-items:center;gap:5px}
+.chain .lnk .pdot{width:7px;height:7px;border-radius:50%;flex:none}
+/* ---- direct brain + integrations + prompts ---- */
+.fld{display:block;margin:8px 0}
+.fld span{display:block;font-size:11px;font-weight:650;color:var(--tx3);
+  margin-bottom:5px}
+.fld select,.fld input{width:100%;background:var(--bg);
+  border:1px solid var(--line);border-radius:9px;padding:8px 10px;
+  color:var(--tx);font-size:12.5px}
+.fld select:focus{outline:none;border-color:var(--violet)}
+.integlist{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:9px}
+.promptlib{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.prompt{border:1px solid var(--line);border-radius:10px;padding:8px 9px;
+  font-size:11px;line-height:1.45;color:var(--tx2);cursor:pointer;
+  background:var(--bg);transition:.15s;text-align:left;width:100%}
+.prompt:hover{border-color:var(--violet);color:var(--tx);transform:translateY(-1px)}
+.prompt b{display:block;font-size:11px;color:var(--tx);margin-bottom:2px}
+.prompt .pk{font-size:9px;font-weight:800;letter-spacing:.5px;
+  text-transform:uppercase;color:var(--violet)}
+.secn{margin-left:auto;font-size:10px;font-weight:700;color:var(--tx3);
+  background:var(--panel2);padding:1px 7px;border-radius:99px}
+/* ---- command palette ---- */
+.cmdk{position:fixed;inset:0;z-index:2000;display:none;
+  align-items:flex-start;justify-content:center;padding:12vh 18px 18px;
+  background:rgba(4,6,12,.6);backdrop-filter:blur(6px)}
+.cmdk.show{display:flex}
+.cmdkbox{width:min(620px,96vw);max-height:66vh;display:flex;
+  flex-direction:column;background:var(--panel);border:1px solid var(--line);
+  border-radius:16px;box-shadow:var(--shadow);overflow:hidden;
+  animation:fade .22s}
+.cmdkin{display:flex;align-items:center;gap:10px;padding:13px 15px;
+  border-bottom:1px solid var(--line)}
+.cmdkin svg{width:16px;height:16px;color:var(--violet);flex:none}
+.cmdkin input{flex:1;background:none;border:none;outline:none;
+  font-size:15px;color:var(--tx)}
+.cmdklist{overflow-y:auto;padding:7px}
+.cmdkgroup{font-size:10px;font-weight:800;letter-spacing:.7px;
+  text-transform:uppercase;color:var(--tx3);padding:9px 9px 4px}
+.cmdkitem{display:flex;align-items:center;gap:11px;width:100%;
+  padding:9px 10px;border-radius:10px;border:1px solid transparent;
+  background:none;color:var(--tx);font-size:13px;cursor:pointer;text-align:left}
+.cmdkitem small{display:block;font-size:11px;color:var(--tx3)}
+.cmdkitem.sel{background:var(--grad-soft);border-color:rgba(168,85,247,.4)}
+.cmdkitem .pm{width:24px;height:24px;border-radius:8px;display:grid;
+  place-items:center;font-size:9px;font-weight:800;color:#fff;flex:none}
+.cmdkitem kbd{margin-left:auto;font-size:10px;background:var(--panel2);
+  border:1px solid var(--line);border-radius:5px;padding:1px 6px;color:var(--tx3)}
+/* ---- export bar + help overlay ---- */
+.xbar{display:flex;gap:6px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+.xbar button{font-size:11px;color:var(--tx3);border:1px solid var(--line);
+  border-radius:8px;padding:5px 11px;background:var(--panel);transition:.15s}
+.xbar button:hover{color:var(--tx);border-color:var(--violet)}
+.helpov{position:fixed;inset:0;z-index:2000;display:none;
+  align-items:center;justify-content:center;padding:20px;
+  background:rgba(4,6,12,.66);backdrop-filter:blur(7px)}
+.helpov.show{display:flex}
+.helpsheet{width:min(680px,96vw);max-height:88vh;overflow-y:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:18px;
+  padding:24px 24px 20px;box-shadow:var(--shadow);animation:fade .25s}
+.helpsheet h2{font-size:20px;letter-spacing:-.4px;margin-bottom:4px}
+.helpsheet h3{font-size:14px;margin:18px 0 8px;color:var(--mc,#4F8DFD)}
+.helpsheet p,.helpsheet li{font-size:13px;color:var(--tx2);line-height:1.6}
+.helpsheet table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}
+.helpsheet th,.helpsheet td{border:1px solid var(--line);padding:6px 9px;
+  text-align:left}
+.helpsheet th{background:var(--panel2)}
+.helpsheet kbd{background:var(--panel2);border:1px solid var(--line);
+  border-radius:5px;padding:1px 6px;font-size:11px}
+/* ---- theme packs (accent presets, additive to light/dark) ---- */
+html[data-accent="ocean"]{--mc:#00B4FF;--mcg:#0353A4}
+html[data-accent="sunset"]{--mc:#FF7A45;--mcg:#C2410C}
+html[data-accent="forest"]{--mc:#22D3A7;--mcg:#0E7C5E}
+html[data-accent="royal"]{--mc:#C084FC;--mcg:#7C3AED}
+html[data-accent="rose"]{--mc:#FF5FA2;--mcg:#BE185D}
+html[data-accent="gold"]{--mc:#FFC53D;--mcg:#B57500}
+.themegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.themebtn{border:1px solid var(--line);border-radius:11px;padding:9px 6px;
+  font-size:11px;color:var(--tx2);background:var(--bg);cursor:pointer;
+  transition:.15s;text-align:center}
+.themebtn:hover{transform:translateY(-1px)}
+.themebtn.on{border-color:var(--violet)}
+.themebtn .sw{height:22px;border-radius:7px;margin-bottom:6px}
+/* ---- admin overview cards ---- */
+.admingrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.admcard{background:var(--bg);border:1px solid var(--line);
+  border-radius:11px;padding:10px 11px}
+.admcard b{display:block;font-size:19px;letter-spacing:-.4px}
+.admcard span{font-size:10.5px;color:var(--tx3)}
+.admrow{display:flex;align-items:center;gap:8px;font-size:11.5px;
+  padding:5px 0;border-top:1px solid var(--line2);color:var(--tx2)}
+.admrow .ok2{color:var(--ok);font-weight:700}
+.admrow .no2{color:var(--tx3)}
+/* ---- motion pack: staggered entrances, glow pulse on live ---- */
+@keyframes axin{from{opacity:0;transform:translateY(10px) scale(.985)}
+  to{opacity:1;transform:none}}
+.msg{animation:axin .34s cubic-bezier(.2,.9,.3,1)}
+.brain.live{border-color:rgba(49,217,138,.35);
+  animation:axglow 3.2s ease-in-out infinite}
+@keyframes axglow{0%,100%{box-shadow:none}
+  50%{box-shadow:0 0 0 1px rgba(49,217,138,.22),
+  0 6px 22px rgba(49,217,138,.12)}}
+.hlogo{animation:float 5s ease-in-out infinite,axhalo 4s ease-in-out infinite}
+@keyframes axhalo{0%,100%{filter:drop-shadow(0 14px 40px rgba(168,85,247,.55))}
+  50%{filter:drop-shadow(0 14px 54px rgba(0,229,255,.6))}}
+.chip{animation:axin .4s both}
+.chip:nth-child(2){animation-delay:.06s}
+.chip:nth-child(3){animation-delay:.12s}
+.chip:nth-child(4){animation-delay:.18s}
+.pill.live{animation:axglow 3s infinite}
+/* ---- model compare table (in help) ---- */
+.cmpwrap{overflow-x:auto}
+.cmp{border-collapse:collapse;width:100%;font-size:11.5px;min-width:520px}
+.cmp th,.cmp td{border:1px solid var(--line);padding:6px 8px;text-align:left}
+.cmp th{background:var(--panel2);font-size:10.5px;text-transform:uppercase;
+  letter-spacing:.4px}
+.cmp td.on{color:var(--ok);font-weight:700}
+.cmp td.off{color:var(--tx3)}
+/* ---- live clock in topbar ---- */
+#axclock{font-variant-numeric:tabular-nums;font-size:11.5px;color:var(--tx3)}
+@media(max-width:560px){
+  .promptlib{grid-template-columns:1fr}
+  .admingrid{grid-template-columns:1fr}
+  .themegrid{grid-template-columns:1fr 1fr}
+}
+/* ---- wave 2: print, ultrawide, contrast, motion, progress, gallery ------ */
+@media print{
+  .side,.comp,.top,.xbar,.cmdk,.helpov,#flow{display:none!important}
+  body{overflow:visible;background:#fff;color:#111}
+  .main::before{display:none}
+  .chat{overflow:visible}
+  .bub{border:1px solid #ccc;background:#fff;color:#111}
+  .msg{break-inside:avoid}
+}
+@media(min-width:1600px){
+  .inner{max-width:1280px}
+  .srcs{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+}
+html[data-contrast="1"]{
+  --tx:#FFFFFF; --tx2:#D5DBEE; --tx3:#AAB3D0;
+  --line:rgba(255,255,255,.22); --line2:rgba(255,255,255,.14);
+}
+html[data-contrast="1"] .bub{border-width:2px}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;
+    transition-duration:.01ms!important}
+  .hlogo{animation:none}
+}
+:focus-visible{outline:2px solid var(--violet);outline-offset:2px}
+#axprogress{position:fixed;top:0;left:0;height:3px;width:0;z-index:3000;
+  background:var(--grad);transition:width .12s linear}
+#axbacktop{position:fixed;right:18px;bottom:86px;z-index:900;width:40px;
+  height:40px;border-radius:50%;display:none;place-items:center;
+  background:var(--panel);border:1px solid var(--line);color:var(--tx2)}
+#axbacktop.show{display:grid}
+#axbacktop:hover{border-color:var(--violet);color:var(--tx)}
+.galgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.galcard{border:1px solid var(--line);border-radius:12px;overflow:hidden;
+  background:var(--bg);transition:.16s}
+.galcard:hover{border-color:var(--violet);transform:translateY(-2px)}
+.galprev{height:86px;display:grid;place-items:center;font-size:11px;
+  font-weight:800;letter-spacing:.4px;color:#fff}
+.galbody{padding:9px 11px}
+.galbody b{font-size:12px;display:block;margin-bottom:2px}
+.galbody p{font-size:11px;color:var(--tx2);line-height:1.5;margin:0 0 8px}
+.tutstep{border:1px solid var(--line);border-radius:11px;padding:10px 12px;
+  margin:8px 0;background:var(--bg)}
+.tutstep b{font-size:12.5px}
+.tutstep p{font-size:12px;color:var(--tx2);margin:4px 0 8px;line-height:1.6}
+.tutstep code{font-family:var(--mono);font-size:11.5px;background:var(--panel2);
+  padding:1px 6px;border-radius:5px;color:var(--cyan)}
+.manual h4{font-size:14px;margin:16px 0 6px;color:var(--tx)}
+.manual p,.manual li{font-size:12.5px;color:var(--tx2);line-height:1.65}
+.manual ol,.manual ul{padding-left:20px;margin:6px 0}
+.manual li{margin:4px 0}
+.manual .warn{background:rgba(255,176,32,.1);border:1px solid rgba(255,176,32,.35);
+  border-radius:10px;padding:9px 12px;font-size:12px;margin:8px 0}
+.axquote{border-left:2.5px solid var(--ax2);padding:6px 0 6px 12px;margin:8px 0;
+  background:var(--grad-soft);border-radius:0 10px 10px 0;font-size:12px}
+.i18nrow{display:flex;gap:6px;margin-top:8px}
+.i18nrow button{flex:1}
+.tourspot{position:relative;z-index:1500;box-shadow:0 0 0 3px var(--violet),
+  0 0 40px rgba(168,85,247,.5)!important;border-radius:12px}
+#axtour{position:fixed;z-index:1600;max-width:300px;background:var(--panel);
+  border:1px solid var(--violet);border-radius:14px;padding:14px 15px;
+  box-shadow:var(--shadow);display:none;font-size:12.5px}
+#axtour.show{display:block}
+#axtour b{display:block;margin-bottom:4px}
+#axtour .tbtns{display:flex;gap:6px;margin-top:10px}
+.skel{border-radius:8px;background:linear-gradient(90deg,var(--panel2) 25%,
+  var(--panel) 50%,var(--panel2) 75%);background-size:200% 100%;
+  animation:axsk 1.2s infinite linear;min-height:14px}
+@keyframes axsk{to{background-position:-200% 0}}
+.cmdkitem .src{font-size:9px;font-weight:800;color:var(--tx3);
+  text-transform:uppercase;letter-spacing:.5px;margin-left:auto}
+.axstat2{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.axstat2 .admcard{flex:1;min-width:90px}
+@media(max-width:560px){.galgrid{grid-template-columns:1fr}}
+</style>
+<script>
+/* ============================================================
+   ADELTE X core — logo, brand badges, direct brain, integrations,
+   admin overview. Additive layer: only adds, never rewrites.
+   ============================================================ */
+(function(){
+'use strict';
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,
+  function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function apiUrl(p){try{
+  if(typeof window.api==='function') return '__AX__';
+  return (window.API||'')+p;}catch(e){return p;}}
+async function axapi(p,opt){
+  var u=(typeof window.api==='function')?window.api(p):((window.API||'')+p);
+  var r=await fetch(u,opt);
+  return r.json();
+}
+function toastm(t){try{
+  if(typeof window.toast==='function') window.toast(t,'ok');
+  }catch(e){}}
+
+/* ---------- new favicon from /logo.svg (old data-URI kept as fallback) -- */
+try{
+  var lk=document.createElement('link');
+  lk.rel='icon'; lk.type='image/svg+xml'; lk.href='logo.svg';
+  document.head.appendChild(lk);
+}catch(e){}
+
+/* ---------- brand badges: real logos, initial-marks as fallback -------- */
+var AX_LOGO=function(d){return 'https://logo.clearbit.com/'+d;};
+var AX_BRAND={
+  groq:{c:'#F55036',m:'GQ',l:AX_LOGO('groq.com')},
+  openrouter:{c:'#8B5CF6',m:'OR',l:AX_LOGO('openrouter.ai')},
+  gemini:{c:'#4796E3',m:'GE',l:AX_LOGO('gemini.google.com')},
+  cerebras:{c:'#FF6B35',m:'CE',l:AX_LOGO('cerebras.ai')},
+  together:{c:'#3B82F6',m:'TO',l:AX_LOGO('together.ai')},
+  mistral:{c:'#FF7000',m:'MI',l:AX_LOGO('mistral.ai')},
+  openai:{c:'#10A37F',m:'AI',l:AX_LOGO('openai.com')},
+  clarifai:{c:'#0BACB8',m:'CL',l:AX_LOGO('clarifai.com')},
+  databricks:{c:'#FF3621',m:'DB',l:AX_LOGO('databricks.com')},
+  horde:{c:'#A855F7',m:'H',l:AX_LOGO('aihorde.net')}};
+window.AX_BRAND=AX_BRAND;
+function axbadge(pid,label,ready,big){
+  var b=AX_BRAND[pid]||{c:'#4F8DFD',m:'?'};
+  var face=b.l?('<img src="'+b.l+'" alt="'+esc(label||pid)+
+    '" loading="lazy" onerror="this.remove()">'):'';
+  return '<span class="pbadge'+(big?' big':'')+(ready?'':' off')+'" title="'+
+    esc(label||pid)+(ready?' — connected':' — no key, skipped')+'">'+
+    '<span class="pm" style="background:'+b.c+'">'+face+b.m+'</span>'+
+    esc(label||pid)+'</span>';
+}
+window.axbadge=axbadge;
+
+/* ---------- enhance server-rendered brain cards with badges ------------- */
+function axEnhanceBrains(){
+  var bw=$('brains'); if(!bw||!window.SRV) return;
+  var provs={}; (window.SRV.providers||[]).forEach(function(p){provs[p.label]=p;});
+  bw.querySelectorAll('.brain').forEach(function(card){
+    if(card.dataset.ax) return; card.dataset.ax='1';
+    var chain=card.querySelector('.chain'); if(!chain) return;
+    chain.querySelectorAll('.lnk').forEach(function(lnk){
+      var name=lnk.textContent.trim();
+      var pid=null;
+      Object.keys(provs).forEach(function(id){
+        if(provs[id].label===name) pid=id;});
+      if(!pid) Object.keys(AX_BRAND).forEach(function(id){
+        if((AX_BRAND[id].m||'').toLowerCase()===name.slice(0,2).toLowerCase()
+           && name.length<=3) pid=id;});
+      var b=pid?(AX_BRAND[pid]||{c:'#4F8DFD'}):{c:'#666'};
+      var d=document.createElement('span');
+      d.className='pdot'; d.style.background=b.c;
+      lnk.prepend(d);
+    });
+  });
+}
+new MutationObserver(function(){axEnhanceBrains();})
+  .observe(document.documentElement,{childList:true,subtree:true});
+setInterval(axEnhanceBrains,2500);
+
+/* ---------- direct brain picker: use ANY connected model --------------- */
+window.ADELTE_BRAIN='';
+var AX_BRAINS=[];
+function axBrainLabel(id){
+  var b=AX_BRAINS.find(function(x){return x.id===id;});
+  return b?(b.label+' '+b.model.split('/').pop().replace(':free','')):id;
+}
+async function axLoadBrains(){
+  var sel=$('brainpick'); if(!sel) return;
+  try{
+    var r=await axapi('/api/models/raw'); AX_BRAINS=r.brains||[];
+  }catch(e){ return; }
+  var ready=AX_BRAINS.filter(function(b){return b.ready;});
+  var bc=$('braincount'); if(bc) bc.textContent=ready.length;
+  function isFree(b){
+    return !!(b.free||/free/i.test(b.model||'')||b.provider==='horde');
+  }
+  function opt(b){
+    return '<option value="'+esc(b.id)+'">'+esc(b.label)+' · '+
+      esc((b.model||'').split('/').pop().replace(':free',''))+'</option>';
+  }
+  var free=ready.filter(isFree), keyed=ready.filter(function(b){return !isFree(b);});
+  sel.innerHTML='<option value="">Auto (model chain)</option>'+
+    '<optgroup label="Free — no key needed">'+
+    (free.map(opt).join('')||'<option value="" disabled>none online</option>')+
+    '</optgroup>'+
+    (keyed.length?'<optgroup label="Keyed — your APIs">'+keyed.map(opt).join('')+
+    '</optgroup>':'')+
+    (AX_BRAINS.length>ready.length?
+      '<optgroup label="Offline (no key)">'+
+      AX_BRAINS.filter(function(b){return !b.ready;}).map(function(b){
+        return '<option value="" disabled>'+esc(b.label)+' · '+
+          esc((b.model||'').split('/').pop().replace(':free',''))+'</option>';
+      }).join('')+'</optgroup>':'');
+  var saved='';
+  try{saved=localStorage.getItem('ax_brain')||'';}catch(e){}
+  if(saved&&ready.some(function(b){return b.id===saved;})){
+    sel.value=saved; axSetBrain(saved,true);
+  }
+  sel.onchange=function(){
+    axSetBrain(sel.value,false);
+    try{localStorage.setItem('ax_brain',sel.value);}catch(e){}
+  };
+  axComposerBrain(ready);
+}
+function axSetBrain(id,quiet){
+  window.ADELTE_BRAIN=id||'';
+  var n=$('brainnote');
+  if(n) n.textContent=id?('Direct: '+axBrainLabel(id)+' answers every message.')
+                        :'Auto: the model\u2019s full chain decides.';
+  var cs=$('cbrainpick'); if(cs) cs.value=id||'';
+  if(!quiet&&id) toastm('Direct brain: '+axBrainLabel(id));
+}
+function axComposerBrain(ready){
+  try{
+    var copts=document.querySelector('.copts'); if(!copts||$('cbrainpick')) return;
+    var lab=document.createElement('label');
+    lab.className='apisel mdlsel'; lab.title='Talk to one engine directly';
+    lab.innerHTML='<svg class="i"><use href="#i-brain"/></svg>';
+    var s=document.createElement('select'); s.id='cbrainpick';
+    var fr=ready.filter(function(b){
+      return b.free||/free/i.test(b.model||'')||b.provider==='horde';});
+    var kd=ready.filter(function(b){
+      return !(b.free||/free/i.test(b.model||'')||b.provider==='horde');});
+    function o2(b){
+      return '<option value="'+esc(b.id)+'">'+esc(b.label)+' · '+
+        esc((b.model||'').split('/').pop().replace(':free',''))+'</option>';
+    }
+    s.innerHTML='<option value="">Brain: auto</option>'+
+      '<optgroup label="Free">'+(fr.map(o2).join('')||'<option value="" disabled>—</option>')+'</optgroup>'+
+      (kd.length?'<optgroup label="Keyed">'+kd.map(o2).join('')+'</optgroup>':'');
+    s.value=window.ADELTE_BRAIN||'';
+    s.onchange=function(){
+      var main=$('brainpick');
+      if(main){main.value=s.value;main.onchange&&main.onchange();}
+      else axSetBrain(s.value,false);
+    };
+    lab.appendChild(s);
+    var mdl=document.querySelector('.mdlsel');
+    if(mdl&&mdl.parentNode) mdl.parentNode.insertBefore(lab,mdl.nextSibling);
+    else copts.appendChild(lab);
+  }catch(e){}
+}
+
+/* ---------- integrations panel: badges + live test --------------------- */
+async function axLoadInteg(){
+  var box=$('integlist'); if(!box) return;
+  var st=null;
+  try{ st=await axapi('/api/integrations/status'); }
+  catch(e){
+    box.innerHTML='<span class="pbadge off">server offline</span>'; return;
+  }
+  var ig=st.integrations||{};
+  var names={groq:'Groq',gemini:'Gemini',openrouter:'OpenRouter',openai:'OpenAI',
+    together:'Together',cerebras:'Cerebras',mistral:'Mistral',clarifai:'Clarifai',
+    google_cse:'Google CSE',telegram:'Telegram',spice:'Spice.ai',
+    databricks:'Databricks',sql_db:'SQL DB'};
+  var live=0, h='';
+  Object.keys(names).forEach(function(k){
+    var v=ig[k]||{live:false};
+    if(v.live) live++;
+    h+=axbadge(k==='sql_db'?'databricks':k,names[k]+
+      (k==='openai'&&v.keys?(' ×'+v.keys):''),v.live);
+  });
+  box.innerHTML=h;
+  var c=$('integcount'); if(c) c.textContent=live+'/'+Object.keys(names).length;
+  var m=$('integmsg');
+  if(m) m.textContent=live+' live. Grey badges are skipped automatically.';
+}
+async function axTestInteg(){
+  var m=$('integmsg'), box=$('integlist');
+  if(m) m.textContent='Pinging every provider…';
+  try{
+    var t=await axapi('/api/integrations/test');
+    var r=t.results||{}, up=0, h='';
+    var label={groq:'Groq',openrouter:'OpenRouter',together:'Together',
+      cerebras:'Cerebras',mistral:'Mistral',gemini:'Gemini',clarifai:'Clarifai',
+      google_cse:'Google CSE',telegram:'Telegram',databricks:'Databricks',
+      spice:'Spice.ai',sql:'SQL DB'};
+    Object.keys(r).forEach(function(k){
+      var base=k.split('#')[0], v=r[k];
+      if(v.reachable) up++;
+      h+='<span class="pbadge'+(v.reachable?'':' off')+'" title="'+
+        esc(v.detail||'')+'"><span class="pm" style="background:'+
+        (v.reachable?'#31D98A':'#666')+'">'+
+        (v.reachable?'✓':'×')+'</span>'+
+        esc(label[base]||k)+'</span>';
+    });
+    if(box) box.innerHTML=h;
+    if(m) m.textContent=t.reachable+' of '+t.total+
+      ' reachable. Hover a badge for detail.';
+    toastm(t.reachable+' of '+t.total+' APIs reachable');
+  }catch(e){ if(m) m.textContent='Test failed: server unreachable.'; }
+}
+
+/* ---------- admin overview cards (who logged in, at a glance) ----------- */
+async function axLoadAdmin(){
+  if($('axadmin')) return;
+  var data=null;
+  try{ data=await axapi('/api/admin/overview'); }
+  catch(e){ return; }
+  if(!data||!data.ok) return;
+  try{
+    var anchor=document.querySelector('#opensettings');
+    if(!anchor) return;
+    var sec=document.createElement('div'); sec.className='sec'; sec.id='axadmin';
+    var accts=data.accounts||{count:0,verified:0,latest:[]};
+    var logins=data.logins||{count:0,latest:[]};
+    var h='<div class="sech"><svg class="i"><use href="#i-user"/></svg>'+
+      'Who is here<span class="secn">'+accts.count+'</span></div>'+
+      '<div class="card"><div class="admingrid">'+
+      '<div class="admcard"><b>'+accts.count+'</b><span>accounts · '+
+      accts.verified+' verified</span></div>'+
+      '<div class="admcard"><b>'+logins.count+'</b><span>sign-ins logged</span></div>'+
+      '</div>';
+    (accts.latest||[]).slice(0,5).forEach(function(a){
+      h+='<div class="admrow"><span class="pbadge'+(a.verified?'':' off')+
+        '"><span class="pm" style="background:'+
+        (a.verified?'#31D98A':'#666')+'">'+
+        esc((a.username||'?').slice(0,2).toUpperCase())+'</span>'+
+        esc(a.username||'?')+'</span><span style="margin-left:auto" class="no2">'+
+        esc(a.email||'')+'</span></div>';
+    });
+    (logins.latest||[]).slice(0,5).forEach(function(l){
+      var d=new Date((l.at||0)*1000);
+      h+='<div class="admrow"><span class="'+(l.ok?'ok2':'no2')+'">'+
+        (l.ok?'✓':'×')+'</span> '+esc(l.username||'?')+
+        ' <span class="no2">'+esc(l.kind||'')+'</span>'+
+        '<span style="margin-left:auto" class="no2">'+
+        (isNaN(d.getTime())?'':d.toLocaleString())+'</span></div>';
+    });
+    h+='</div>';
+    sec.innerHTML=h;
+    anchor.closest('.sec').parentNode.insertBefore(sec,anchor.closest('.sec'));
+  }catch(e){}
+}
+
+/* ---------- boot ---------- */
+function axBoot(){
+  var t=$('integtest');
+  if(t) t.onclick=axTestInteg;
+  axLoadBrains(); axLoadInteg(); axLoadAdmin();
+  setTimeout(function(){axLoadBrains();axLoadInteg();},4000);
+}
+if(document.readyState==='loading')
+  document.addEventListener('DOMContentLoaded',axBoot);
+else axBoot();
+})();
+</script>
+<script>
+/* ============================================================
+   ADELTE X experience — palette, prompts, export, themes, help.
+   Additive layer: own overlay roots, own key handler (Ctrl+K).
+   ============================================================ */
+(function(){
+'use strict';
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,
+  function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function toastm(t,ok){try{
+  if(typeof window.toast==='function') window.toast(t,ok||'ok');}catch(e){}}
+function setComposer(t){
+  var q=$('q'); if(!q) return;
+  q.value=t; q.focus();
+  q.dispatchEvent(new Event('input',{bubbles:true}));
+}
+
+/* ---------------- prompt library (60 starters, 6 shelves) -------------- */
+var AX_PROMPTS=[
+[{'code':['Login page','Create a responsive login page with validation, strength meter and dark mode']},
+{'code':['Portfolio site','Build a portfolio site for a photographer with gallery filter and contact form']},
+{'code':['Dashboard','Make an admin dashboard with charts, sidebar and data table in one file']},
+{'code':['Calculator','Write a scientific calculator in one HTML file with keyboard support']},
+{'code':['Todo app','Create a todo app with localStorage, filters and drag to reorder']},
+{'code':['Landing page','Design a SaaS landing page with hero, pricing, FAQ and signup form']},
+{'code':['REST API','Write a FastAPI CRUD backend for notes with SQLite and tests']},
+{'code':['Regex help','Explain this regex and give 5 test cases: ^(?=.*[A-Z])(?=.*\\\\d).{8,}$']},
+{'code':['Debug','Find the bug in my code and show the fixed version with an explanation']},
+{'code':['SQL schema','Design a Postgres schema for a blog with users, posts and comments']}],
+[{'research':['Quantum chips','What is the state of quantum computing chips in 2026, simply explained']},
+{'research':['FastAPI vs Flask','FastAPI vs Flask in 2026: differences, performance and when to use each']},
+{'research':['Black holes','What happens inside a black hole, explained for a beginner']},
+{'research':['AI agents','How do AI agents work? Tools, memory and planning explained']},
+{'research':['CRISPR','CRISPR gene editing: how it works and where it stands today']},
+{'research':['Fusion energy','Is fusion power close? Status of ITER, NIF and startups']},
+{'research':['5G vs 6G','5G vs 6G: what changes and when it arrives']},
+{'research':['Sleep science','What does science say about the perfect night of sleep']},
+{'research':['Stock basics','Explain stocks, ETFs and index funds like I am 15']},
+{'research':['Climate tech','Which climate technologies actually work at scale']}],
+[{'write':['Email','Draft a polite follow-up email after a job interview']},
+{'write':['Essay plan','Plan a 5-paragraph essay on renewable energy with thesis and sources']},
+{'write':['Story','Write a 300-word sci-fi flash story with a twist ending']},
+{'write':['CV bullets','Turn this job into 5 strong CV bullet points: retail cashier']},
+{'write':['Speech','Write a 2-minute wedding toast that is warm and funny']},
+{'write':['Blog intro','Write a catchy intro for a blog post about home workouts']},
+{'write':['Apology','Draft a sincere apology message to a friend I cancelled on']},
+{'write':['Lyrics','Write chorus lyrics about a city that never sleeps']},
+{'write':['Summary','Summarise this in 5 ordered points: \',']},
+{'write':['Translate','Translate to French, then explain the grammar choices: Hello, how are you']}],
+[{'command':['Open','open youtube']},
+{'command':['Lock','lock pc']},
+{'command':['Time','what time is it']},
+{'command':['Coin','flip a coin']},
+{'command':['Specs','specs']},
+{'command':['Disk','disk']},
+{'command':['IP','publicip']},
+{'command':['Battery','battery']},
+{'command':['Uptime','uptime']},
+{'command':['Help','help']}],
+[{'think':['Pros cons','Pros and cons of remote work, decided with a verdict']},
+{'think':['Roadmap','Give me a 90-day roadmap to learn Python from zero']},
+{'think':['Business','5 low-cost business ideas for a student, ranked by effort']},
+{'think':['Decision','Help me decide: laptop vs desktop for programming']},
+{'think':['Study','Explain photosynthesis step by step with a memory trick']},
+{'think':['Math','Teach me percentages with 3 real-life examples']},
+{'think':['Habit','Design a morning routine that fits in 30 minutes']},
+{'think':['Gift','Gift ideas under $30 for someone who loves cooking']},
+{'think':['Travel','Plan a 3-day budget trip to Paris with daily costs']},
+{'think':['Career','Roadmap from junior to senior developer']}],
+[{'fix':['Python error','Explain this Python traceback and fix it: ']},
+{'fix':['JS bug','Why is my fetch returning undefined? Show the correct pattern']},
+{'fix':['Install','pip install fails with SSL error — all fixes in order']},
+{'fix':['Git','Undo my last git commit but keep the changes — exact commands']},
+{'fix':['Docker','Docker container exits immediately — diagnose step by step']},
+{'fix':['WiFi','WiFi connected but no internet — Windows fix checklist']},
+{'fix':['Slow PC','My PC is slow — safe cleanup steps in order']},
+{'fix':['Phone','Free up phone storage without losing photos']},
+{'fix':['Printer','Printer offline on Windows — fix it']},
+{'fix':['Battery drain','Laptop battery drains fast — find the cause on Windows']}]];
+
+function axRenderPrompts(){
+  var box=$('promptlib'); if(!box) return;
+  if(!$('axpromptq')){
+    var inp=document.createElement('input');
+    inp.id='axpromptq'; inp.placeholder='Filter 300+ prompts…';
+    inp.style.cssText='width:100%;background:var(--bg);border:1px solid var(--line);'+
+      'border-radius:9px;padding:7px 10px;color:var(--tx);font-size:12px;margin-bottom:7px';
+    inp.oninput=axDrawPrompts;
+    box.parentNode.insertBefore(inp,box);
+  }
+  axDrawPrompts();
+}
+function axDrawPrompts(){
+  var box=$('promptlib'); if(!box) return;
+  var q=(($('axpromptq')||{}).value||'').toLowerCase(), n=0, h='';
+  AX_PROMPTS.forEach(function(group){
+    group.forEach(function(p){
+      var k=Object.keys(p)[0], title=p[k][0]||'', text=p[k][1]||'';
+      if(q&&(k+' '+title+' '+text).toLowerCase().indexOf(q)<0) return;
+      n++;
+      h+='<button class="prompt" data-p="'+esc(text)+'"><span class="pk">'+
+        esc(k)+'</span><b>'+esc(title.slice(0,26))+'</b>'+
+        esc(text.slice(0,64))+'</button>';
+    });
+  });
+  box.innerHTML=h||'<p class="keymsg">No match.</p>';
+  var pc=$('promptcount');
+  if(pc) pc.textContent=n;
+  box.querySelectorAll('.prompt').forEach(function(b){
+    b.onclick=function(){ setComposer(b.dataset.p); toastm('Prompt loaded — press Enter'); };
+  });
+}
+
+/* ---------------- wave 2: 140 more prompts (200 total) -------------------- */
+AX_PROMPTS.push(
+[{'persona':['Socratic tutor','Question me step by step until I solve it myself, never give the answer directly']},
+{'persona':['Code reviewer','Review my code like a strict senior: bugs, style, perf, then the fixed version']},
+{'persona':['Startup CEO','Act as my startup CEO: set weekly priorities and hold me accountable']},
+{'persona':['Fitness coach','Act as my fitness coach: ask my level, then build week 1']},
+{'persona':['Debate rival','Argue against my opinion as strongly as you can, then judge who won']},
+{'persona':['Historian','Tell the story of the internet like a historian, 5 eras']},
+{'persona':['Chef','Act as my chef: 3 dinners from rice, eggs and tomatoes']},
+{'persona':['Therapist mode','Help me think through a hard decision with calm questions (not therapy)']},
+{'persona':['Language buddy','Teach me Spanish greetings, then quiz me with corrections']},
+{'persona':['Math coach','Drill me on fractions: explain, example, my turn, mark']},
+{'persona':['Career mentor','Audit my developer skills and say what to learn next']},
+{'persona':['Editor','Cut this paragraph in half without losing meaning: ']},
+{'persona':['Translator pro','Translate to German in formal tone, then list the grammar used']},
+{'persona':['Game master','Run a 5-room text adventure, wait for my move each room']},
+{'persona':['Quizzer','Quiz me on world capitals, 10 questions, score at the end']},
+{'persona':['Architect','Criticise my app idea like a systems architect, then improve it']},
+{'persona':['Doctor of code','Diagnose my slow SQL like a doctor: symptoms, tests, cure']},
+{'persona':['Poet','Write a haiku about rain on windows']},
+{'persona':['Comedian','Give me 3 clean one-liners about programmers']},
+{'persona':['Detective','Help me find why my keys went missing: ask elimination questions']}],
+[{'biz':['Name it','10 startup names for a dog-walking app, with .com check tips']},
+{'biz':['Pitch','30-second pitch for a budget meal-prep service']},
+{'biz':['Pricing','3 pricing tiers for freelance logo design with psychology']},
+{'biz':['Marketing 0$','Market my Etsy shop with zero budget, 7 tactics in order']},
+{'biz':['Invoice','Write a polite late-payment reminder for a client']},
+{'biz':['SWOT','SWOT analysis for opening a coffee cart near a campus']},
+{'biz':['Hire','5 interview questions for a junior designer with good answers']},
+{'biz':['Refund','Write a kind refund refusal that keeps the customer']},
+{'biz':['Launch','Launch checklist for my app: 15 items in order']},
+{'biz':['Niche','Is selling phone cases still viable? Honest breakdown']},
+{'biz':['Side hustle','Rank 5 side hustles by startup cost and hours']},
+{'biz':['Brand voice','Define a brand voice for a playful kids app, with examples']},
+{'biz':['Survey','8 survey questions to validate my app idea']},
+{'biz':['Churn','Why do users quit apps? Top 7 reasons with fixes']},
+{'biz':['Upsell','Write an upsell email for my course, friendly not pushy']},
+{'biz':['Partner','Draft a partnership outreach message for a local gym']},
+{'biz':['Costs','Monthly costs to run a small blog, itemised']},
+{'biz':['First sale','How to get my first 10 customers step by step']},
+{'biz':['Fail post','Write an honest shutdown post for my failed project']},
+{'biz':['Resume biz','One-page business plan for a car-wash weekend service']}],
+[{'study':['Algebra','Teach solving 2x+5=15 three ways']},
+{'study':['Essay verbs','Strong verbs for essays: 20 with example sentences']},
+{'study':['Periodic table','Memorise the first 20 elements with a story']},
+{'study':['WW2 causes','5 causes of WW2 in one line each, then detail']},
+{'study':['Cell parts','Animal cell parts and jobs, with a labelling quiz']},
+{'study':['Fractions','Add 1/4 + 2/3 step by step, then 3 practice']},
+{'study':['Gravity','Why do things fall? From Aristotle to Einstein in 5 steps']},
+{'study':['French verbs','Conjugate être and avoir, then a fill-in quiz']},
+{'study':['Maps','Read a topographic map: contours, scale, symbols']},
+{'study':['Chemistry moles','What is a mole? Explain with a dozen eggs']},
+{'study':['Shakespeare','What is Hamlet about in 10 lines']},
+{'study':['Photosynthesis eq','The photosynthesis equation explained piece by piece']},
+{'study':['Money math','If I save $5 a week, what in a year? Show the math']},
+{'study':['Time zones','Why do time zones exist? Explain with a globe']},
+{'study':['Debate prep','3 arguments for school uniforms with rebuttals']},
+{'study':['Lab report','Structure of a perfect lab report with sentence starters']},
+{'study':['Spelling','20 commonly misspelled words with memory tricks']},
+{'study':['Geometry','Area of circle vs circumference: never confuse again']},
+{'study':['History date','Why 1789 matters: France in 8 points']},
+{'study':['Exam plan','2-week exam study plan for 5 subjects, daily blocks']}],
+[{'fun':['Riddle','Give me 5 hard riddles, answers hidden at the end']},
+{'fun':['Trivia','10 science trivia questions, score me']},
+{'fun':['Story duo','Start a story with 3 lines, I continue, you continue']},
+{'fun':['Would you','10 would-you-rather questions, tech edition']},
+{'fun':['Poem code','A poem about debugging at 2am']},
+{'fun':['Superpower','What superpower fits a night owl? Decide with reasons']},
+{'fun':['Movie night','Pick a movie for 3 friends who disagree, with tie-break logic']},
+{'fun':['Dream job','Invent 3 jobs that will exist in 2040']},
+{'fun':['Time machine','Where in history should I visit for one day and why']},
+{'fun':['Alien','First 5 things to ask an alien ambassador']},
+{'fun':['Joke battle','We trade jokes, you judge each round honestly']},
+{'fun':['Playlist','10-song focus playlist with why each track works']},
+{'fun':['Recipe fun','Pancakes explained like a car manual']},
+{'fun':['Haiku code','Haikus about Python, JavaScript and CSS']},
+{'fun':['Escape','Design a 5-puzzle living-room escape game']},
+{'fun':['Compliment','Roast my messy desk, then compliment my ambition']},
+{'fun':['Fortune','My fortune as a programmer, funny but encouraging']},
+{'fun':['Pet','Name my robot vacuum: 10 options ranked']},
+{'fun':['Weekend','Perfect rainy weekend plan, hour by hour']},
+{'fun':['Sleep story','A 200-word sleepy story about a lighthouse']}],
+[{'build2':['Chat UI','Build a chat UI in one HTML file with typing indicator']},
+{'build2':['Weather app','Weather app in one file using a free API, with icons']},
+{'build2':['Notes app','Notes app with tags and search, localStorage only']},
+{'build2':['Timer','Pomodoro timer with sound and session counter']},
+{'build2':['Gallery','Image gallery with lightbox and keyboard arrows']},
+{'build2':['Form validator','Signup form with live validation messages per field']},
+{'build2':['Markdown','Live markdown previewer in one file']},
+{'build2':['Quiz app','Quiz app that shuffles questions and shows score']},
+{'build2':['Music player','Simple music player UI with fake playlist and progress']},
+{'build2':['Kanban','Kanban board with 3 columns and add-card']},
+{'build2':['Blog theme','Minimal blog theme HTML+CSS, readable typography']},
+{'build2':['Pricing table','Pricing table with monthly/yearly toggle']},
+{'build2':['Navbar','Responsive navbar with mobile burger menu']},
+{'build2':['Footer','Big footer with columns and newsletter input']},
+{'build2':['404 page','Funny 404 page with a game link']},
+{'build2':['Loader','5 CSS loading spinners, copy-paste ready']},
+{'build2':['Modal','Accessible modal dialog with focus trap']},
+{'build2':['Tabs','Tabs component with keyboard support']},
+{'build2':['Accordion','FAQ accordion with smooth animation']},
+{'build2':['Carousel','Testimonial carousel with autoplay and dots']}],
+[{'fix2':['CORS','Fix CORS error on fetch: explain then show dev and prod fixes']},
+{'fix2':['NPM EACCES','npm EACCES permission error on Linux — safe fix order']},
+{'fix2':['Port busy','Port 8000 already in use — find and free it on Windows']},
+{'fix2':['Blue screen','Windows blue screen once a week — diagnose in order']},
+{'fix2':['No sound','No sound on Windows 11 — checklist from simple to deep']},
+{'fix2':['Boot slow','Windows boots slowly — what to check and disable']},
+{'fix2':['Overheat','Laptop overheats gaming — safe steps before repaste']},
+{'fix2':['Update stuck','Windows update stuck at 30% — recovery steps']},
+{'fix2':['Drive full','C: drive full — find the hogs safely on Windows']},
+{'fix2':['VPN drops','VPN disconnects every 10 minutes — likely causes and fixes']},
+{'fix2':['CSS ignored','My CSS file is ignored — the 6 usual causes in order']},
+{'fix2':['Git auth','Git asks for password every push — switch to token/SSH steps']},
+{'fix2':['Python path',"'python' not recognized on Windows — fix PATH properly"]},
+{'fix2':['pip freeze','pip freeze is huge — clean minimal requirements method']},
+{'fix2':['JSON parse','JSON.parse throws on my API reply — diagnose with examples']},
+{'fix2':['Async bug','My async function returns a promise not data — fix pattern']},
+{'fix2':['Duplicate list','Remove duplicates from a list but keep order, 3 ways']},
+{'fix2':['Timezone bug','Dates shift by a day in my app — the timezone fix']},
+{'fix2':['Memory leak','Find a JS memory leak: devtools steps in order']},
+{'fix2':['SEO zero','My site gets zero Google traffic — 10-point audit']}]);
+function axMessages(){
+  var out=[];
+  document.querySelectorAll('#inner .msg').forEach(function(m){
+    var role=m.classList.contains('user')?'You':'ADELTE';
+    var body=m.querySelector('.bub');
+    out.push({role:role,text:body?(body.innerText||'').trim():''});
+  });
+  return out.filter(function(m){return m.text;});
+}
+function axDownload(name,content,type){
+  var b=new Blob([content],{type:type||'text/plain'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(b); a.download=name;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},800);
+}
+function axExport(kind){
+  var ms=axMessages();
+  if(!ms.length){toastm('Nothing to export yet');return;}
+  var d=new Date().toISOString().slice(0,10);
+  if(kind==='md'){
+    axDownload('adelte-chat-'+d+'.md','# ADELTE chat — '+d+'\n\n'+
+      ms.map(function(m){return '## '+m.role+'\n\n'+m.text+'\n';}).join('\n'),
+      'text/markdown');
+  }else if(kind==='json'){
+    axDownload('adelte-chat-'+d+'.json',JSON.stringify(ms,null,2),'application/json');
+  }else{
+    axDownload('adelte-chat-'+d+'.txt',
+      ms.map(function(m){return m.role+':\n'+m.text+'\n';}).join('\n---\n'));
+  }
+  toastm('Chat exported ('+ms.length+' messages)');
+}
+function axExportBar(){
+  if($('axexport')||!$('inner')) return;
+  var bar=document.createElement('div');
+  bar.className='xbar'; bar.id='axexport';
+  bar.innerHTML='<button data-x="md">Export .md</button>'+
+    '<button data-x="txt">Export .txt</button>'+
+    '<button data-x="json">Export .json</button>'+
+    '<button data-x="help">Shortcuts &amp; help</button>'+
+    '<button data-x="palette">Command palette <kbd>Ctrl+K</kbd></button>';
+  $('inner').appendChild(bar);
+  bar.querySelectorAll('button').forEach(function(b){
+    b.onclick=function(){
+      var k=b.dataset.x;
+      if(k==='help') axHelp(true);
+      else if(k==='palette') axPalette(true);
+      else axExport(k);
+    };
+  });
+}
+
+/* ---------------- themes + font size ----------------------------------- */
+var AX_THEMES=[
+  ['default','Default','#4F8DFD'],['ocean','Ocean','#00B4FF'],
+  ['sunset','Sunset','#FF7A45'],['forest','Forest','#22D3A7'],
+  ['royal','Royal','#C084FC'],['rose','Rose','#FF5FA2'],['gold','Gold','#FFC53D']];
+function axApplyTheme(name){
+  if(name==='default') document.documentElement.removeAttribute('data-accent');
+  else document.documentElement.setAttribute('data-accent',name);
+  try{localStorage.setItem('ax_theme',name);}catch(e){}
+  document.querySelectorAll('.themebtn').forEach(function(b){
+    b.classList.toggle('on',b.dataset.t===name);});
+}
+function axThemeRow(){
+  if($('axthemes')) return;
+  var anchor=$('opensettings'); if(!anchor) return;
+  var wrap=document.createElement('div');
+  wrap.id='axthemes'; wrap.style.marginTop='10px';
+  var saved='default';
+  try{saved=localStorage.getItem('ax_theme')||'default';}catch(e){}
+  wrap.innerHTML='<div class="sech" style="margin-bottom:7px">'+
+    '<svg class="i"><use href="#i-spark"/></svg>Accent theme</div>'+
+    '<div class="themegrid">'+AX_THEMES.map(function(t){
+      return '<button class="themebtn'+(t[0]===saved?' on':'')+'" data-t="'+t[0]+
+        '"><div class="sw" style="background:linear-gradient(135deg,'+t[2]+
+        ',#A855F7)"></div>'+t[1]+'</button>';
+    }).join('')+'</div>'+
+    '<div style="display:flex;gap:6px;margin-top:8px">'+
+    '<button class="btn" id="axfont-">A−</button>'+
+    '<button class="btn" id="axfont+">A+</button></div>';
+  anchor.closest('.card').appendChild(wrap);
+  wrap.querySelectorAll('.themebtn').forEach(function(b){
+    b.onclick=function(){axApplyTheme(b.dataset.t);toastm('Theme: '+b.textContent.trim());};});
+  axApplyTheme(saved);
+  var fs=15;
+  try{fs=parseInt(localStorage.getItem('ax_fs')||'15',10)||15;}catch(e){}
+  document.body.style.fontSize=fs+'px';
+  $('axfont-').onclick=function(){fs=Math.max(12,fs-1);
+    document.body.style.fontSize=fs+'px';
+    try{localStorage.setItem('ax_fs',fs);}catch(e){}};
+  $('axfont+').onclick=function(){fs=Math.min(20,fs+1);
+    document.body.style.fontSize=fs+'px';
+    try{localStorage.setItem('ax_fs',fs);}catch(e){}};
+}
+
+/* ---------------- help overlay ------------------------------------------ */
+var AX_HELP_HTML=
+ '<h2>ADELTE guide</h2><p>Five brains, sixteen engines, one composer. '+
+ 'Everything below also works offline-first — keyless parts never need a key.</p>'+
+ '<h3>Brains (ADELTE models)</h3><div class="cmpwrap"><table class="cmp">'+
+ '<tr><th>Model</th><th>Best for</th><th>Search</th><th>Direct brain</th></tr>'+
+ '<tr><td><b>ADELTE Search</b></td><td>Research with sources</td><td class="on">yes</td><td class="on">yes</td></tr>'+
+ '<tr><td><b>Coder 3 High</b></td><td>Full working files</td><td class="off">no</td><td class="on">yes</td></tr>'+
+ '<tr><td><b>Max</b></td><td>Deepest reasoning</td><td class="off">no</td><td class="on">yes</td></tr>'+
+ '<tr><td><b>Commander</b></td><td>Runs your computer</td><td class="off">no</td><td class="off">local</td></tr>'+
+ '<tr><td><b>Cargolis</b></td><td>Screen + desktop help</td><td class="off">no</td><td class="on">yes</td></tr>'+
+ '</table></div>'+
+ '<h3>Direct brain</h3><p>Sidebar → <b>Direct brain</b> (or the composer '+
+ 'Brain picker) talks to <b>one</b> engine: Groq, OpenAI, Gemini, OpenRouter, '+
+ 'Clarifai… The ADELTE model still sets the style. Empty = full chain.</p>'+
+ '<h3>Engines (16)</h3><p>DuckDuckGo ×2, Bing, Brave, Google, <b>Google CSE</b> '+
+ '(keyed), Wikipedia, Wikidata, GitHub repos + issues, StackOverflow, '+
+ 'StackExchange, Hacker News, MDN, npm, GitLab.</p>'+
+ '<h3>Keyboard</h3><table>'+
+ '<tr><th>Keys</th><th>Does</th></tr>'+
+ '<tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd></td><td>Command palette</td></tr>'+
+ '<tr><td><kbd>Enter</kbd></td><td>Send</td></tr>'+
+ '<tr><td><kbd>Shift</kbd>+<kbd>Enter</kbd></td><td>New line</td></tr>'+
+ '<tr><td><kbd>Esc</kbd></td><td>Close overlays</td></tr></table>'+
+ '<h3>APIs</h3><p>Sidebar → <b>Integrations</b> shows every key. '+
+ '<b>Test all live</b> really pings each provider. Docs at top-right <b>API docs</b>.</p>'+
+ '<h3>Desktop Siri</h3><p>Run <code>python cargolis.py</code> on your PC: tray '+
+ 'icon, <b>Ctrl+Alt+A</b> to talk anywhere, screen reading, voice answers.</p>';
+function axHelp(show){
+  var ov=$('axhelp');
+  if(!ov){
+    ov=document.createElement('div'); ov.className='helpov'; ov.id='axhelp';
+    ov.innerHTML='<div class="helpsheet">'+AX_HELP_HTML+
+      '<p style="margin-top:16px"><button class="btn pri" id="axhelpclose">Got it</button></p></div>';
+    document.body.appendChild(ov);
+    ov.onclick=function(e){if(e.target===ov) axHelp(false);};
+    $('axhelpclose').onclick=function(){axHelp(false);};
+  }
+  ov.classList.toggle('show',!!show);
+}
+
+/* ---------------- command palette --------------------------------------- */
+var AX_PAL_IDX=0, AX_PAL_ITEMS=[];
+function axPalette(show){
+  var ov=$('axpal');
+  if(!ov){
+    ov=document.createElement('div'); ov.className='cmdk'; ov.id='axpal';
+    ov.innerHTML='<div class="cmdkbox"><div class="cmdkin">'+
+      '<svg class="i"><use href="#i-spark"/></svg>'+
+      '<input id="axpalin" placeholder="Type a command, model, brain, action…" autocomplete="off">'+
+      '</div><div class="cmdklist" id="axpallist"></div></div>';
+    document.body.appendChild(ov);
+    ov.onclick=function(e){if(e.target===ov) axPalette(false);};
+    $('axpalin').addEventListener('input',axPalFilter);
+    $('axpalin').addEventListener('keydown',function(e){
+      if(e.key==='ArrowDown'){e.preventDefault();axPalMove(1);}
+      else if(e.key==='ArrowUp'){e.preventDefault();axPalMove(-1);}
+      else if(e.key==='Enter'){e.preventDefault();axPalRun();}
+    });
+  }
+  ov.classList.toggle('show',!!show);
+  if(show){AX_PAL_IDX=0;axPalFilter();setTimeout(function(){$('axpalin').focus();},30);}
+}
+function axPalItems(){
+  var items=[];
+  (window.SRV&&window.SRV.models||[]).forEach(function(m){
+    items.push({g:'Models',t:m.name,s:m.blurb||'',run:function(){
+      var p=$('mdlpick'); if(p){p.value=m.id;p.onchange&&p.onchange();}}});
+  });
+  (window.AX_BRAINS||[]).filter(function(b){return b.ready;}).forEach(function(b){
+    var label=b.label+' '+b.model.split('/').pop().replace(':free','');
+    items.push({g:'Direct brains',t:label,s:'Talk to this engine directly',run:function(){
+      var s=$('brainpick'); if(s){s.value=b.id;s.onchange&&s.onchange();}}});
+  });
+  [['New chat',function(){try{document.querySelector('#histnew').click();}catch(e){}}],
+   ['Export .md',function(){axExport('md');}],
+   ['Export .txt',function(){axExport('txt');}],
+   ['Test APIs live',function(){try{$('integtest').click();}catch(e){}}],
+   ['Guide',function(){axHelp(true);}],
+   ['Toggle theme',function(){
+      var b=document.querySelector('#themeBtn'); if(b) b.click();}],
+   ['Voice on/off',function(){
+      var v=document.querySelector('#tgVoice'); if(v) v.click();}]
+  ].forEach(function(a){items.push({g:'Actions',t:a[0],s:'',run:a[1]});});
+  AX_PROMPTS.forEach(function(gr){gr.forEach(function(p){
+    var k=Object.keys(p)[0], text=p[k][1]||'';
+    items.push({g:'Prompts · '+k,t:text.slice(0,60),s:'Fill composer',run:(function(t){
+      return function(){setComposer(t);};})(text)});});});
+  return items;
+}
+function axPalFilter(){
+  var q=(($('axpalin')||{}).value||'').toLowerCase();
+  var all=axPalItems();
+  AX_PAL_ITEMS=all.filter(function(it){
+    return !q||(it.t+' '+it.s+' '+it.g).toLowerCase().indexOf(q)>-1;
+  }).slice(0,40);
+  AX_PAL_IDX=0; axPalDraw();
+}
+function axPalDraw(){
+  var box=$('axpallist'); if(!box) return;
+  var lastG='', h='';
+  AX_PAL_ITEMS.forEach(function(it,i){
+    if(it.g!==lastG){h+='<div class="cmdkgroup">'+esc(it.g)+'</div>';lastG=it.g;}
+    h+='<button class="cmdkitem'+(i===AX_PAL_IDX?' sel':'')+'" data-i="'+i+'">'+
+      '<span>'+esc(it.t)+(it.s?'<small>'+esc(it.s)+'</small>':'')+'</span></button>';
+  });
+  box.innerHTML=h||'<div class="cmdkgroup">No match</div>';
+  box.querySelectorAll('.cmdkitem').forEach(function(b){
+    b.onclick=function(){AX_PAL_IDX=+b.dataset.i;axPalRun();};});
+}
+function axPalMove(d){
+  if(!AX_PAL_ITEMS.length) return;
+  AX_PAL_IDX=(AX_PAL_IDX+d+AX_PAL_ITEMS.length)%AX_PAL_ITEMS.length;
+  axPalDraw();
+  var s=document.querySelector('.cmdkitem.sel');
+  if(s) s.scrollIntoView({block:'nearest'});
+}
+function axPalRun(){
+  var it=AX_PAL_ITEMS[AX_PAL_IDX]; axPalette(false);
+  if(it) try{it.run();}catch(e){}
+}
+
+/* ---------------- topbar clock + global keys ---------------------------- */
+function axClock(){
+  try{
+    var pill=document.querySelector('.top .pill');
+    if(pill&&!$('axclock')){
+      var s=document.createElement('span');
+      s.id='axclock'; s.style.marginLeft='8px';
+      pill.appendChild(s);
+    }
+    var c=$('axclock');
+    if(c) c.textContent=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  }catch(e){}
+  setTimeout(axClock,15000);
+}
+document.addEventListener('keydown',function(e){
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){
+    e.preventDefault(); axPalette(!$('axpal')||!$('axpal').classList.contains('show'));
+  }
+  if(e.key==='Escape'){axPalette(false);axHelp(false);}
+});
+
+/* ---------------- boot ---------------------------- */
+function axBoot2(){
+  axRenderPrompts(); axExportBar(); axThemeRow(); axClock();
+  setInterval(axExportBar,4000);
+}
+if(document.readyState==='loading')
+  document.addEventListener('DOMContentLoaded',axBoot2);
+else axBoot2();
+})();
+</script>
+<script>
+/* ============================================================
+   ADELTE X library — engines guide, model guides, workflows,
+   snippet vault, FAQ, cheatsheets, stats. All rendered into the
+   help overlay as tabs + one sidebar stats card. Additive only.
+   ============================================================ */
+(function(){
+'use strict';
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,
+  function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function toastm(t){try{if(typeof window.toast==='function')window.toast(t,'ok');}catch(e){}}
+function setComposer(t){var q=$('q');if(!q)return;
+  q.value=t;q.focus();q.dispatchEvent(new Event('input',{bubbles:true}));}
+
+/* ---------------- 16 engines, each with a job -------------------------- */
+var AX_ENGINES=[
+{n:'DuckDuckGo',w:'General web, privacy-first, no tracking.',u:'Everyday questions, quick facts.',t:'Try: "solar panel output winter"'},
+{n:'DuckDuckGo HTML',w:'Second DuckDuckGo ranking — different order, wider net.',u:'When the first DDG pass feels thin.',t:'Try: "best budget microphone 2026"'},
+{n:'Bing',w:'Microsoft index via RSS — stable from servers.',u:'News-leaning and mainstream topics.',t:'Try: "electric car range record"'},
+{n:'Brave',w:'Independent index, own crawler.',u:'Tech and privacy topics.',t:'Try: "brave browser vs chrome ram"'},
+{n:'Google',w:'News RSS + scrape fallback.',u:'Breaking news and fresh pages.',t:'Try: "champions league results"'},
+{n:'Google CSE',w:'Official Google API (needs key) — highest precision.',u:'Hard queries where keyless engines miss.',t:'Auto-used when the key is set.'},
+{n:'Wikipedia',w:'Encyclopedia API — definitional answers.',u:'"What is X" questions.',t:'Try: "what is photosynthesis"'},
+{n:'Wikidata',w:'Structured facts: people, orgs, dates.',u:'Who-is and when questions.',t:'Try: "who is Marie Curie"'},
+{n:'GitHub repos',w:'Code ranked by stars, with language tags.',u:'Libraries, frameworks, "how to X in code".',t:'Try: "python pdf library"'},
+{n:'GitHub issues',w:'Real bug reports + fixes from maintainers.',u:'Debugging any error message.',t:'Paste any traceback.'},
+{n:'StackOverflow',w:'Q&A with scores and answered flags.',u:'Specific programming errors.',t:'Try: "react useEffect loop"'},
+{n:'StackExchange',w:'Same network, scored with accept marks.',u:'Deeper technical how-tos.',t:'Try: "postgres index slow"'},
+{n:'Hacker News',w:'Founder/dev sentiment via Algolia.',u:'Comparisons, "is X worth it".',t:'Try: "is rust worth learning"'},
+{n:'MDN',w:'Official HTML/CSS/JS reference.',u:'Web API syntax questions.',t:'Try: "css grid vs flexbox"'},
+{n:'npm',w:'Package registry — names, versions, blurbs.',u:'"Which package for X".',t:'Try: "javascript chart library"'},
+{n:'GitLab',w:'Second code host beyond GitHub.',u:'Self-hosted and DevOps topics.',t:'Try: "self hosted notes app"'}];
+
+/* ---------------- 5 model guides --------------------------------------- */
+var AX_MODELS=[
+{n:'ADELTE Search',c:'#4F8DFD',for:'Research with cited sources.',best:'Ask full questions. Turn Deep read on for reports.',
+lim:'No good for writing files — switch to Coder.',try:'How do solar panels work in winter?'},
+{n:'ADELTE Coder 3 High',c:'#22D3A7',for:'Complete runnable files, zero placeholders.',best:'Say the stack + the features. One file per message.',
+lim:'Does not browse — describe the goal concretely.',try:'Create a login page with dark mode'},
+{n:'ADELTE Max',c:'#C084FC',for:'Hardest reasoning, no web.',best:'Give context + constraints, ask for a verdict.',
+lim:'Knowledge cutoff — not for breaking news.',try:'Laptop vs desktop for programming, decide'},
+{n:'ADELTE Commander',c:'#FF9F45',for:'Runs THIS computer.',best:'Short verbs: lock, specs, battery, open youtube.',
+lim:'Destructive ops ask first. Server host = where it runs.',try:'specs'},
+{n:'ADELTE Cargolis',c:'#FF5FA2',for:'Screen + desktop help.',best:'Paste errors, or run cargolis.py for voice + eyes.',
+lim:'Needs the picture or text of your error.',try:'Fix: ModuleNotFoundError: httpx'}];
+
+/* ---------------- 10 guided workflows ---------------------------------- */
+var AX_FLOWS=[
+{n:'Portfolio in 5 steps',d:'From zero to a deployed personal site.',
+ s:['Design my portfolio structure: sections and copy outline',
+ 'Create a portfolio site for my name with hero, projects and contact',
+ 'Add dark mode to my portfolio',
+ 'Write the About text for a student developer portfolio, 120 words',
+ 'How do I put my HTML portfolio online free? steps in order']},
+{n:'Python zero to script',d:'Learn by building one useful tool.',
+ s:['Explain Python variables and loops with 3 tiny examples',
+ 'Write a Python password generator I can run',
+ 'Add save-to-file to my password generator',
+ 'Teach me Python functions using my password generator as the example',
+ 'Give me 5 practice exercises after functions, easiest first']},
+{n:'Fix any error',d:'From red traceback to green run.',
+ s:['What does this error mean in one paragraph: ',
+ 'Show me the smallest code that triggers this kind of error',
+ 'Now give me the fixed version of my code in full',
+ 'How do I prevent this class of error next time, checklist']},
+{n:'Research report',d:'A sourced answer on any topic.',
+ s:['Give me an outline for a report on my topic with 5 sections',
+ 'Now write section 1 with sources',
+ 'Now section 2 with sources, same style',
+ 'Summarise the whole report in 8 ordered points']},
+{n:'Job hunt kit',d:'CV, mail and interview in one run.',
+ s:['Turn this role into CV bullets: ',
+ 'Draft a cover email for that role, 150 words',
+ 'Give me 10 likely interview questions with strong answers',
+ 'Draft a thank-you email after the interview']},
+{n:'Startup check',d:'Is the idea worth it?',
+ s:['List 5 competitors to my idea and what each lacks',
+ 'Pros and cons of my idea with a verdict',
+ 'Name the idea, write a one-line pitch and landing hero copy',
+ 'First 3 things to build this weekend, in order']},
+{n:'Study sprint',d:'Learn anything in 4 passes.',
+ s:['Explain my topic like I am 12',
+ 'Now the same topic at university depth, 5 key ideas',
+ 'Quiz me: 5 questions, increasing difficulty',
+ 'Mark my answers and re-teach what I missed']},
+{n:'Clean my PC',d:'Safe Windows tune-up.',
+ s:['specs',
+ 'My PC is slow — safe cleanup steps in order',
+ 'Which startup apps can I disable safely?',
+ 'uptime']},
+{n:'API tester',d:'From idea to working backend.',
+ s:['Design REST routes for a notes app with examples',
+ 'Write the FastAPI backend for it with SQLite',
+ 'Show me curl commands to test every route',
+ 'How do I deploy this backend free? steps']},
+{n:'Content week',d:'7 days of posts from one idea.',
+ s:['Give me 7 content angles on my topic, one per day',
+ 'Write day 1 as a 150-word post with a hook',
+ 'Turn day 1 into a 3-tweet thread',
+ 'Write 5 headline options for the week']}];
+
+/* ---------------- snippet vault (24 copy-paste starters) --------------- */
+var AX_SNIPS=[
+['Python · fetch JSON','python','import json, urllib.request\nwith urllib.request.urlopen("https://api.github.com/zen") as r:\n    print(r.read().decode())'],
+['Python · read file safe','python','from pathlib import Path\np = Path("notes.txt")\ntext = p.read_text(encoding="utf-8") if p.exists() else ""\nprint(text[:500])'],
+['Python · FastAPI hello','python','from fastapi import FastAPI\napp = FastAPI()\n@app.get("/")\nasync def root():\n    return {"ok": True}'],
+['Python · countdown','python','import time\nfor i in range(5, 0, -1):\n    print(i)\n    time.sleep(1)\nprint("Go!")'],
+['JS · fetch JSON','javascript','const r = await fetch("https://api.github.com/zen");\nconsole.log(await r.text());'],
+['JS · debounce','javascript','const debounce = (fn, ms) => {\n  let t;\n  return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };\n};'],
+['JS · copy text','javascript','await navigator.clipboard.writeText("hello");\nconsole.log("copied");'],
+['JS · countdown','javascript','let n = 5;\nconst t = setInterval(() => {\n  console.log(n);\n  if (--n < 0) { clearInterval(t); console.log("Go!"); }\n}, 1000);'],
+['HTML · boilerplate','html','<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<title>Page</title>\n</head>\n<body>\n<h1>Hello</h1>\n</body>\n</html>'],
+['CSS · center anything','css','.wrap { display: grid; place-items: center; min-height: 100vh; }'],
+['CSS · gradient text','css','.wow {\n  background: linear-gradient(135deg, #00E5FF, #A855F7, #FF2D95);\n  -webkit-background-clip: text; color: transparent;\n}'],
+['CSS · card','css','.card {\n  border: 1px solid #e5e7eb; border-radius: 14px;\n  padding: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.08);\n}'],
+['SQL · top rows','sql','SELECT id, name, created_at\nFROM users\nORDER BY created_at DESC\nLIMIT 10;'],
+['SQL · count by day','sql',"SELECT date(created_at) AS d, COUNT(*)\nFROM orders\nGROUP BY d\nORDER BY d DESC\nLIMIT 30;"],
+['Bash · backup','bash','tar -czf backup-$(date +%F).tar.gz myfolder/\nls -lh backup-*.tar.gz'],
+['Bash · find text','bash','grep -rn "TODO" --include="*.py" . | head -20'],
+['PowerShell · sysinfo','powershell','Get-ComputerInfo | Select-Object WindowsProductName, TotalPhysicalMemory'],
+['PowerShell · ports','powershell','Get-NetTCPConnection -State Listen | Select-Object LocalPort, OwningProcess -Unique'],
+['Git · fresh start','bash','git init -b main\ngit add .\ngit commit -m "start"\ngit remote add origin URL\ngit push -u origin main'],
+['Git · undo commit','bash','git reset --soft HEAD~1   # keep changes, drop commit\ngit restore --staged .  # unstage everything'],
+['Docker · py app','docker','FROM python:3.12-slim\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install -r requirements.txt\nCOPY . .\nCMD ["python", "adelte.py"]'],
+['Regex · email','regex','^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'],
+['JSON · config','json','{\n  "host": "0.0.0.0",\n  "port": 8000,\n  "deep_pages": 4,\n  "ai_budget": 50.0\n}'],
+['Markdown · table','markdown','| Name | Use |\n| ---- | --- |\n| Search | research |\n| Coder | build |']];
+
+/* ---------------- FAQ (30) ---------------------------------------------- */
+var AX_FAQ=[
+['Do I need an API key?','No. Search, building and commands work keyless. Keys only unlock stronger brains.'],
+['Which brain for homework?','ADELTE Search for facts, Max for reasoning, Coder for code.'],
+['Why did it say "extractive"?','All keyed brains were busy, so it answered from the pages it read. Still cited.'],
+['How do I get sources?','Use ADELTE Search with Deep read on. Every claim links its page.'],
+['Can it write whole files?','Yes — Coder 3 High writes complete runnable files, no TODOs.'],
+['How do I run a command?','Type it: open youtube, lock pc, specs, battery. Destructive ones ask first.'],
+['What is Direct brain?','One engine answering directly instead of the chain. Same style, different muscle.'],
+['How do I use any model?','Sidebar Direct brain picker, or Ctrl+K → Direct brains. Needs that key on the server.'],
+['What does Test all live do?','Pings every provider with a cheap call and shows reachable vs refused.'],
+['Where are my keys?','In .env next to adelte.py. Never in git, never in the browser.'],
+['Is my chat saved?','Sessions persist server-side; the sidebar keeps local history too.'],
+['Does it remember me?','Memory toggle recalls this session. New session starts fresh.'],
+['Can I use it by voice?','In browser: Voice toggle. On desktop: python cargolis.py talks anywhere.'],
+['What is Cargolis?','The desktop twin: tray icon, Ctrl+Alt+A hotkey, sees your screen, speaks answers.'],
+['Can it see my screen?','Cargolis desktop screenshots and explains/fixes what is shown. Browser version reads pages.'],
+['How do I export chat?','Buttons under the chat: .md, .txt or .json download.'],
+['How do I change theme?','Settings card → Accent theme, or Ctrl+K → Toggle theme. A−/A+ resizes text.'],
+['What is the palette?','Ctrl+K: models, brains, prompts, actions, all fuzzy-searchable.'],
+['Does it work offline?','Commander, templates, prompt library and UI do. AI brains need network.'],
+['How do I host it?','Render/Railway: python adelte.py --host 0.0.0.0 (PORT auto-read). Vercel: entrypoint adelte:app.'],
+['Why is Render asleep?','Free tier sleeps when idle; first load takes ~50s. Paid keeps it warm.'],
+['Who logged in?','Sidebar admin card: accounts + latest sign-ins, from /api/admin/overview.'],
+['How do I get an API key?','Free API access card → Generate API key. Docs via top-right API docs.'],
+['Can I add my own model?','Advanced → Add API: any OpenAI-compatible endpoint, kept in your browser.'],
+['What engines exist?','16: Guides tab lists each with its job and a try-query.'],
+['Google CSE says no key?','It needs GOOGLE_CUSTOM_SEARCH_API_KEY + GOOGLE_SEARCH_ENGINE_ID in .env.'],
+['Telegram bot?','Needs TELEGRAM_BOT_TOKEN from @BotFather in .env; test via Integrations.'],
+['Is it private?','Self-hosted: queries go to engines/providers you use. No ADELTE account, no tracking.'],
+['Who made ADELTE?','ADELTE Industries. The assistant runs from your machine.']];
+
+/* ---------------- cheatsheets (4 × compact tables) ---------------------- */
+var AX_SHEETS=[
+{n:'Git survival',rows:[['init + first push','git init -b main && git add . && git commit -m "start"'],['save work','git add . && git commit -m "msg"'],['undo commit keep code','git reset --soft HEAD~1'],['drop local changes','git restore .'],['see history','git log --oneline -10'],['new branch','git checkout -b feat-x'],['sync main','git pull --rebase origin main'],['stash','git stash / git stash pop']]},
+{n:'Python quick',rows:[['venv','python -m venv .venv && .venv\\Scripts\\activate'],['install','pip install -r requirements.txt'],['server','uvicorn adelte:app --port 8000'],['format check','python -m py_compile adelte.py'],['env var','setx KEY "value"  (Windows)'],['json pretty','python -m json.tool file.json'],['http test','curl localhost:8000/api/health'],['find text','findstr /s "TODO" *.py']]},
+{n:'Regex mini',rows:[['email','^[\\w.%+-]+@[\\w.-]+\\.[A-Za-z]{2,}$'],['digits','\\d+'],['word','\\bword\\b'],['optional','colou?r'],['any char','.'],['start/end','^ … $'],['repeat','a{2,4}'],['or','cat|dog']]},
+{n:'Docker mini',rows:[['build','docker build -t app .'],['run','docker run -p 8000:8000 app'],['list','docker ps'],['stop','docker stop ID'],['logs','docker logs ID'],['clean','docker system prune'],['compose','docker compose up --build'],['shell','docker exec -it ID sh']]}];
+
+/* ---------------- wave 2: FAQ x40, flows x10, snips x24, sheets x4 ------ */
+AX_FAQ.push(
+['How fast are answers?','Keyed brains: seconds. Free swarm: queue-dependent. Extractive: instant.'],
+['Why two DuckDuckGos?','Different rankings; merged and deduped for wider coverage.'],
+['What is Deep read?','Downloads the top pages and reads them fully instead of snippets.'],
+['Can I pick engines?','Yes — the API accepts an engines list; the UI auto-picks by intent.'],
+['Code or web?','The classifier routes code words to code engines — unless you ask "what is", which stays conceptual.'],
+['Do commands work on mobile?','Web commands open URLs anywhere. System commands run on the server machine.'],
+['Is Commander safe?','Destructive ops ask first; disable all with --no-system.'],
+['How do scheduled actions work?','Schedule tab: sleep/lock/off in N seconds, cancellable.'],
+['Instagram tab?','Connect handle, read DMs aloud, reply by voice or typing.'],
+['What is the orb?','Cargolis floating sphere: screen capture + fix/explain/research.'],
+['How do accounts work?','Username + password → @adelte.mab identity + personal API key.'],
+['Verified badge?','Admins award it from the overview; it shows on your account.'],
+['Rate limits?','Minted keys get 500 calls/day by default.'],
+['Can I call it from code?','Yes: POST /api/chat with your key. Docs at /docs.'],
+['Streaming?','POST /api/chat/stream for live tokens over SSE.'],
+['Images?','POST /api/image — free keyless generation. Video too.'],
+['Vision?','Cargolis analyse endpoint reads screenshots via vision models.'],
+['What if no keys?','Free swarm + keyless engines + local templates still build full files.'],
+['Why was code thin?','A capped swarm reply gets auto-continued; thin drafts fall back to full templates.'],
+['How do I update?','git pull, restart. The SQLite DB migrates itself.'],
+['Where is the DB?','Per-user data dir (not the app folder, to avoid reload loops). Override with --db.'],
+['Vercel cold starts?','First hit wakes it (~10s). The 5-min cron keeps it warm.'],
+['Render sleeps?','Free tier sleeps; cron + paid instance fix it.'],
+['How do I back up?','Copy the .db file. Chats, keys, accounts live there.'],
+['Delete my data?','Clear session button wipes that session; admin can delete accounts.'],
+['Dark mode?','Toggle in the footer; accent packs in Settings.'],
+['Font size?','A−/A+ in Settings, saved per browser.'],
+['How do I report bugs?','Export the chat (.md) and send it with what you expected.'],
+['Can it translate?','Yes — 100+ languages, with grammar notes on request.'],
+['Math?','Commander "math 45*12" or just ask; Max shows working.'],
+['Timezones?','Ask "time" — server-local clock, topbar shows yours.'],
+['Does it browse live?','Search lane fetches live pages; think lane reasons from knowledge.'],
+['Why no answer?','All brains busy + swarm empty is rare; retry — rotation skips failures.'],
+['Can I self-host models?','Advanced → Add API: point at Ollama/LM Studio, kept in your browser.'],
+['Ollama URL?','http://127.0.0.1:11434/v1/chat/completions, bearer key if set.'],
+['Commercial use?','Your chats are yours; check provider terms for the brains you enable.'],
+['NSFW?','No. Keep it clean.'],
+['How big is context?','History window is trimmed per turn; long files stream in continuations.'],
+['Can it read PDFs?','Paste the text, or link a readable page URL for Deep read.']);
+AX_FLOWS.push(
+{n:'Learn guitar month 1',d:'Daily 20-minute path.',s:['Parts of the guitar and how to tune, in order','First 4 chords with finger diagrams described','A 7-day practice plan, 20 min a day','3 easy songs using only those chords','How to know I am ready for barre chords']},
+{n:'First 5k run',d:'Couch to 5k in 8 weeks.',s:['What gear do I actually need for week 1','Week 1-2 walk-run plan with exact intervals','How to breathe and pace: the talk test','What to eat before and after runs','Race-day checklist for my first 5k']},
+{n:'Sourdough starter',d:'From flour to first loaf.',s:['Starter recipe day by day for 7 days','How to tell the starter is ready: 3 signs','Simplest first loaf recipe with timings','What went wrong: dense crumb diagnosis','Storing starter between bakes']},
+{n:'Excel to analyst',d:'Spreadsheet skills that pay.',s:['10 formulas every analyst knows, with examples','Pivot tables explained in 10 minutes','Clean this messy data: steps — ','Charts that do not lie: rules with examples','Build a monthly budget dashboard spec']},
+{n:'Video channel',d:'First 10 videos planned.',s:['10 video ideas in my niche ranked by effort','Script video 1 with hook, body, CTA','Cheap gear list under $100 total','Thumbnail rules with 3 examples','Upload checklist: title, tags, end screen']},
+{n:'Move abroad',d:'Paperwork before plane.',s:['Document checklist for moving abroad, in order','Budget the move: categories with ranges','First-week survival plan in a new city','Banking + phone setup steps','Homesickness kit: 7 tactics']},
+{n:'Grow herbs indoor',d:'Kitchen garden, zero experience.',s:['5 easiest herbs ranked by forgiveness','Setup: pots, soil, light on a budget','Watering rules that prevent 90% of deaths','Harvest without killing the plant','Save seeds for next season']},
+{n:'Pass driving test',d:'Theory + practical.',s:['20 theory questions with answers','Parallel parking broken into 5 steps','What examiners score: the sheet explained','Calm-nerves routine for test day','First solo drive checklist']},
+{n:'Write a novel',d:'From idea to draft.',s:['Turn my idea into a one-page premise','3-act outline for my premise','Chapter 1 draft, 800 words','Make my villain scarier: 5 techniques','Daily 500-word habit that sticks']},
+{n:'Home workout',d:'No gym, no excuses.',s:['Assess my level with a 5-minute test','Week 1 full-body plan, no equipment','Perfect push-up form, step by step','Protein on a budget: 7 foods','Track progress without a scale']});
+AX_SNIPS.push(
+['Python · timer dec','python','import time, functools\ndef timed(fn):\n    @functools.wraps(fn)\n    def go(*a, **k):\n        t = time.time()\n        out = fn(*a, **k)\n        print(f"{fn.__name__}: {time.time()-t:.2f}s")\n        return out\n    return go'],
+['Python · dedupe keep order','python','def dedupe(xs):\n    seen, out = set(), []\n    for x in xs:\n        if x not in seen:\n            seen.add(x)\n            out.append(x)\n    return out'],
+['Python · retry','python','import time\ndef retry(fn, tries=3, wait=1.0):\n    for i in range(tries):\n        try:\n            return fn()\n        except Exception:\n            if i == tries - 1:\n                raise\n            time.sleep(wait)'],
+['Python · dataclass','python','from dataclasses import dataclass\n@dataclass\nclass User:\n    name: str\n    email: str = ""\n    active: bool = True'],
+['JS · fetch timeout','javascript','async function get(url, ms = 8000) {\n  const c = new AbortController();\n  const t = setTimeout(() => c.abort(), ms);\n  try {\n    const r = await fetch(url, { signal: c.signal });\n    return await r.json();\n  } finally { clearTimeout(t); }\n}'],
+['JS · group by','javascript','const groupBy = (xs, k) =>\n  xs.reduce((m, x) => ((m[x[k]] ??= []).push(x), m), {});'],
+['JS · download','javascript','function dl(name, text) {\n  const a = document.createElement("a");\n  a.href = URL.createObjectURL(new Blob([text]));\n  a.download = name;\n  a.click();\n}'],
+['JS · on ready','javascript','const ready = (fn) =>\n  document.readyState !== "loading"\n    ? fn()\n    : document.addEventListener("DOMContentLoaded", fn);'],
+['CSS · truncate','css','.cut {\n  overflow: hidden; text-overflow: ellipsis;\n  display: -webkit-box; -webkit-line-clamp: 2;\n  -webkit-box-orient: vertical;\n}'],
+['CSS · dark toggle','css','[data-theme="light"] { --bg: #fff; --tx: #111; }\nbody { background: var(--bg); color: var(--tx); }'],
+['CSS · responsive grid','css','.grid {\n  display: grid; gap: 12px;\n  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));\n}'],
+['CSS · button','css','.btn {\n  padding: 9px 14px; border-radius: 10px;\n  background: #4F46E5; color: #fff; border: 0;\n}'],
+['SQL · join latest','sql','SELECT u.name, o.total\nFROM users u\nJOIN orders o ON o.user_id = u.id\nORDER BY o.created_at DESC\nLIMIT 20;'],
+['SQL · safe update','sql','BEGIN;\nUPDATE users SET active = 0 WHERE id = 42;\n-- check, then:\nCOMMIT; -- or ROLLBACK;'],
+['Bash · loop files','bash','for f in *.log; do\n  echo "== $f"\n  wc -l "$f"\ndone'],
+['Bash · backup mysql','bash','mysqldump -u root -p mydb > backup-$(date +%F).sql'],
+['PowerShell · json','powershell','$j = Get-Content data.json -Raw | ConvertFrom-Json\n$j | Format-Table'],
+['PowerShell · kill port','powershell','$p = (Get-NetTCPConnection -LocalPort 8000).OwningProcess\nStop-Process -Id $p'],
+['Git · amend','bash','git add .\ngit commit --amend --no-edit\ngit push --force-with-lease'],
+['Git · cherry pick','bash','git cherry-pick abc1234\ngit status  # resolve, then continue'],
+['Docker · compose','docker','services:\n  web:\n    build: .\n    ports: ["8000:8000"]\n    restart: unless-stopped'],
+['YAML · basic','yaml','server:\n  host: 0.0.0.0\n  port: 8000\nflags:\n  - deep\n  - memory'],
+['TOML · basic','toml','[server]\nhost = "0.0.0.0"\nport = 8000\n[ai]\nbudget = 50.0'],
+['Markdown · code','markdown','```python\nprint("hello")\n```']);
+AX_SHEETS.push(
+{n:'cURL API',rows:[['health','curl localhost:8000/api/health'],['chat','curl -X POST localhost:8000/api/chat -H "Content-Type: application/json" -d "{\\"message\\":\\"hi\\"}"'],['search','curl "localhost:8000/api/search?q=python"'],['models','curl localhost:8000/api/models'],['brains','curl localhost:8000/api/models/raw'],['test apis','curl localhost:8000/api/integrations/test'],['make key','curl -X POST localhost:8000/api/keys/generate'],['commander','curl localhost:8000/api/commander/catalog']]},
+{n:'JS fetch API',rows:[['chat',"await (await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'hi'})})).json()"],['stream',"fetch('/api/chat/stream',{method:'POST',body:JSON.stringify({message:'hi'})})"],['direct brain','{message, model, brain:"groq:llama-3.3-70b-versatile"}'],['search',"fetch('/api/search?q='+encodeURIComponent(q))"],['image',"fetch('/api/image',{method:'POST',body:JSON.stringify({prompt})})"],['commander',"fetch('/api/commander/run',{method:'POST',body:JSON.stringify({command:'specs'})})"],['admin',"fetch('/api/admin/overview').then(r=>r.json())"],['logo',"document.createElement('img').src='/logo.svg'"]]},
+{n:'Vim mini',rows:[['save quit',':wq'],['quit no save',':q!'],['undo','u'],['search','/text + n'],['goto line',':42'],['delete line','dd'],['paste','p'],['visual','v then y/d']]},
+{n:'Markdown all',rows:[['headings','# ## ###'],['bold italic','**b** *i* ~~s~~'],['link','[t](url)'],['image','![a](src)'],['code','`x` and ``` blocks'],['table','| a | b |'],['quote','> line'],['list','- item / 1. item']]});
+
+/* ---------------- manual: full operator chapters -------------------------- */
+var AX_MANUAL=[
+{t:'1 · Install & first run',b:[
+'Install Python 3.9 or newer, then run pip install -r requirements.txt in the app folder.',
+'Start the brain with python adelte.py and open http://localhost:8000 in any browser.',
+'No account, no key, no setup: the free swarm and keyless engines answer immediately.',
+'Keep adelte.html next to adelte.py — the server serves the UI itself. Never use Live Server on it.']},
+{t:'2 · Keys without fear',b:[
+'Copy .env.example to .env and paste keys as KEY=value, one per line. Restart the server.',
+'Keys never enter git (.env is ignored), never enter the browser, never appear in any API reply.',
+'Check Sidebar → API manager, or GET /api/models, for masked proof (gsk_EH...Qx2g style).',
+'Prove they WORK with Integrations → Test all live, backed by /api/integrations/test.',
+'<div class="warn">You pasted secrets in a chat before: rotate any key that ever touched chat history.</div>']},
+{t:'3 · Picking the right brain',b:[
+'ADELTE Search for anything factual — it reads pages and cites them.',
+'Coder 3 High for files — describe stack + features, get runnable code back.',
+'Max for judgment calls — give constraints, demand a verdict.',
+'Commander for the machine itself — lock, specs, battery, open youtube.',
+'Direct brain to pin ONE engine; empty means the full chain with automatic fallback.']},
+{t:'4 · Search like a pro',b:[
+'Deep read ON for reports and anything you will quote; OFF for speed.',
+'Code words route to code engines; "what is X" stays conceptual on purpose.',
+'Follow-ups resolve pronouns against the previous turn — "and the second one?" just works.',
+'Use the engines guide tab to learn which of the 16 does what.']},
+{t:'5 · Build like a pro',b:[
+'One file per message keeps quality highest; say the stack up front.',
+'If output looks thin, say "continue" or "the file is unfinished" — it resumes exactly where it stopped.',
+'Refine with "fix the navbar" — the previous file is reused automatically, never re-pasted.',
+'Ship it: the offline templates guarantee a complete file even with zero AI.']},
+{t:'6 · Commander safely',b:[
+'Web opens (open github) just open tabs. System ops (lock, sleep) act on the SERVER machine.',
+'Destructive ops (shutdown, format-adjacent) ask for confirm=true first.',
+'On hosted servers, system commands act THERE — keep a local server for your own PC.',
+'Disable everything with python adelte.py --no-system.']},
+{t:'7 · Cargolis desktop',b:[
+'pip install -r requirements-desktop.txt, then python cargolis.py beside a running server.',
+'Ctrl+Alt+A talks from anywhere; the tray icon offers Talk, See screen, Quit.',
+'"See my screen" screenshots, transcribes via vision, then fixes or explains.',
+'Voice out is offline (Windows SAPI); voice in uses the mic or falls back to typing.']},
+{t:'8 · Hosting & staying online',b:[
+'Render: Blueprint render.yaml exists; set start command python adelte.py --host 0.0.0.0; PORT is auto-read.',
+'Vercel: pyproject entrypoint adelte:app; serverless DB lands in /tmp (history resets on cold starts).',
+'Free tiers sleep: the 5-minute /api/health cron keeps Vercel warm; Render needs paid for true always-on.',
+'For permanent history on hosting, attach Postgres/a disk — the Store layer is the seam.']},
+{t:'9 · API for developers',b:[
+'POST /api/chat {message, model, brain, session_id} — the whole product in one call.',
+'POST /api/chat/stream for live SSE tokens; GET /api/search for raw engine hits.',
+'Mint keys at POST /api/keys/generate; pass as x-api-key header or Bearer token.',
+'Full schema at /docs; 24 copy-paste calls live in the help Cheats tab cookbook.']},
+{t:'10 · Troubleshooting bible',b:[
+'Server offline in sidebar → start python adelte.py, then reopen the page (no Live Server).',
+'All badges grey → .env missing or server not restarted after editing it.',
+'Key refused on test → wrong key or no credit; rotation already skipped it in chains.',
+'Thin code → say continue; empty reply → retry, the swarm queues.',
+'Page reloads on answer → you opened adelte.html via a watcher; use http://localhost:8000.',
+'Mic dead → Chrome/Edge + HTTPS/localhost; typing always works.',
+'102 narrowing: check /api/health first — status ok means the app is fine and the fault is upstream.']}];
+/* ---------------- tutorials: 10 guided lessons -------------------------- */
+var AX_TUTS=[
+{t:'Deploy on Render',s:[['Create the service','Blueprint render.yaml is in the repo — Render reads it. Or manual: build pip install -r requirements.txt, start python adelte.py --host 0.0.0.0.'],['Add the keys','Environment tab → add the 12 vars from your local .env, exact names.'],['Ship it','Manual Deploy → latest commit. Open /api/health, then /api/integrations/status.']]},
+{t:'Deploy on Vercel',s:[['Import the repo','vercel.com → Add New Project → the GitHub repo. Framework auto-detects FastAPI via pyproject.'],['Add the keys','Settings → Environment Variables → same 12 vars. Redeploy (new commit, not the old row).'],['Verify','Open /api/health and /api/models/raw on your vercel.app URL.']]},
+{t:'Connect Ollama (free local brain)',s:[['Run Ollama','Install from ollama.com, then: ollama pull llama3.1'],['Register it','Sidebar Advanced → Add API → http://127.0.0.1:11434/v1/chat/completions, model llama3.1.'],['Use it','Composer second dropdown → Auto tries it; Test all enabled proves it.']]},
+{t:'Talk to ONE model',s:[['Open Direct brain','Sidebar picker lists every key-ready engine, Free first.'],['Pin it','Pick e.g. Groq llama-3.3-70b — every message now uses only it.'],['Unpin','Back to Auto for the full chain with fallback.']]},
+{t:'Get cited research',s:[['Pick Search','Composer model → ADELTE Search, Deep read ON.'],['Ask fully','Full questions beat keywords: "why" gets reasoning, sources attached.'],['Verify','Click the [1][2] chips — they open the exact pages used.']]},
+{t:'Ship a login page',s:[['Spec it','Coder model: "login page, validation, strength meter, dark mode".'],['Run it','Save as login.html, double-click. It runs first try.'],['Extend it','"Add Google button" — the file is remembered, never re-pasted.']]},
+{t:'Master Commander',s:[['Safe first','Try specs, battery, uptime — read-only, instant.'],['Open things','open youtube / play lofi beats / search quantum.'],['Power','lock pc now; shutdown-class ops ask first. --no-system disables all.']]},
+{t:'Cargolis voice setup',s:[['Install ears','pip install -r requirements-desktop.txt for mic + voice + hotkey + tray.'],['Talk anywhere','python cargolis.py, then Ctrl+Alt+A from any window.'],['Show it bugs','"See my screen" on an error → spoken cause + full fix.']]},
+{t:'Prompt like a pro',s:[['Be concrete','Stack + features + constraints beats "make a website".'],['One job per message','Research, then build, then refine — chains stay sharp.'],['Steal starters','Prompt library → 200 starters; palette → fuzzy-find them.']]},
+{t:'Debug with ADELTE',s:[['Paste the traceback','Cargolis or chat, task=fix: cause in one paragraph.'],['Get the full fix','Never a snippet — the entire corrected file.'],['Lock it in','"How do I prevent this next time" → checklist.']]}];
+/* ---------------- build gallery: 30 specced starters -------------------- */
+var AX_GAL=[
+['Neon login','HTML·CSS','Validation, strength meter, dark mode, caps-lock warn',3053,'linear-gradient(135deg,#4F46E5,#7C3AED)'],
+['Photo portfolio','HTML·CSS·JS','Filterable gallery, lightbox, contact form',3054,'linear-gradient(135deg,#0EA5E9,#6366F1)'],
+['Admin dash','HTML·CSS·JS','Sidebar, stat cards, chart, sortable table',3055,'linear-gradient(135deg,#10B981,#0D9488)'],
+['Sci calculator','HTML·JS','Keyboard support, history tape',3056,'linear-gradient(135deg,#F59E0B,#EF4444)'],
+['Pomodoro','HTML·JS','25/5 cycles, sound, session dots',3057,'linear-gradient(135deg,#EF4444,#B91C1C)'],
+['Markdown live','HTML·JS','Split editor + preview, export .md',3058,'linear-gradient(135deg,#6366F1,#8B5CF6)'],
+['Quiz engine','HTML·JS','Shuffle, timer per Q, score screen',3059,'linear-gradient(135deg,#8B5CF6,#D946EF)'],
+['Kanban mini','HTML·JS','3 columns, add card, drag between',3060,'linear-gradient(135deg,#06B6D4,#3B82F6)'],
+['Weather now','HTML·JS·API','Free API, icons, 3-day strip',3061,'linear-gradient(135deg,#38BDF8,#0EA5E9)'],
+['Notes+tags','HTML·JS','localStorage, tag filter, search',3062,'linear-gradient(135deg,#FBBF24,#F59E0B)'],
+['Chat UI','HTML·CSS','Bubbles, typing indicator, dark',3063,'linear-gradient(135deg,#22D3A7,#10B981)'],
+['Pricing toggle','HTML·JS','Monthly/yearly switch, highlighted plan',3064,'linear-gradient(135deg,#A855F7,#7C3AED)'],
+['Navbar pro','HTML·CSS','Sticky blur, burger, dropdown',3065,'linear-gradient(135deg,#64748B,#334155)'],
+['Big footer','HTML·CSS','4 columns, newsletter, socials',3066,'linear-gradient(135deg,#0F172A,#334155)'],
+['Fun 404','HTML·CSS','Animated art, search, home CTA',3067,'linear-gradient(135deg,#FF2D95,#A855F7)'],
+['Spinners','CSS','5 copy-paste loaders',3068,'linear-gradient(135deg,#00E5FF,#3B82F6)'],
+['Modal a11y','HTML·JS','Focus trap, Esc, overlay click',3069,'linear-gradient(135deg,#7C3AED,#4F46E5)'],
+['Tabs kit','HTML·JS','Keyboard arrows, ARIA roles',3070,'linear-gradient(135deg,#0D9488,#22D3A7)'],
+['FAQ accordion','HTML·JS','Smooth height, single-open',3071,'linear-gradient(135deg,#B45309,#F59E0B)'],
+['Testimonials','HTML·JS','Autoplay carousel, dots',3072,'linear-gradient(135deg,#DB2777,#F472B6)'],
+['Todo pro','HTML·JS','Filters, counts, clear-done',3073,'linear-gradient(135deg,#059669,#34D399)'],
+['Clock world','HTML·JS','4 timezones, live tick',3074,'linear-gradient(135deg,#1D4ED8,#3B82F6)'],
+['Countdown','HTML·JS','To any date, confetti at zero',3075,'linear-gradient(135deg,#C2410C,#FB923C)'],
+['BMI calc','HTML·JS','Metric/imperial, gauge bar',3076,'linear-gradient(135deg,#65A30D,#84CC16)'],
+['Password gen','HTML·JS','Length, symbols, copy',3077,'linear-gradient(135deg,#475569,#94A3B8)'],
+['Unit convert','HTML·JS','Length/weight/temp, swap',3078,'linear-gradient(135deg,#0EA5E9,#22D3A7)'],
+['Stopwatch','HTML·JS','Laps table, export',3079,'linear-gradient(135deg,#7C2D12,#EA580C)'],
+['Dice roller','HTML·JS','D4–D20, history',3080,'linear-gradient(135deg,#991B1B,#EF4444)'],
+['Color picker','HTML·JS','HEX/RGB/HSL, palette save',3081,'linear-gradient(135deg,#00E5FF,#A855F7,#FF2D95)'],
+['Typing test','HTML·JS','WPM, accuracy, restart',3082,'linear-gradient(135deg,#312E81,#6D28D9)']];
+
+/* ---------------- wave 3: prompts +120, faq +40, flows +10 ---------------- */
+AX_PROMPTS.push(
+[{'study2':['Mitochondria','Mitochondria explained: the powerhouse story with a diagram in words']},
+{'study2':['Osmosis','Osmosis vs diffusion with a kitchen experiment']},
+{'study2':['Blaise Pascal','Who was Pascal? Life, pressure and the wager in brief']},
+{'study2':['Roman roads','Why Roman roads lasted 2000 years: engineering in 5 points']},
+{'study2':['Binary','Count to 31 on one hand: binary for beginners']},
+{'study2':['Essay hooks','10 essay hook sentences that actually work']},
+{'study2':['Plagiarism','Paraphrase vs plagiarism with before/after examples']},
+{'study2':['Statistics mean','Mean vs median vs mode with salaries example']},
+{'study2':['Volcano types','3 volcano types and which is most dangerous']},
+{'study2':['Water cycle','The water cycle with a journey of one droplet']},
+{'study2':['French food','Order food in French: phrases + pronunciation']},
+{'study2':['Human heart','Blood flow through the heart in 8 steps']},
+{'study2':['Moon phases','Why the moon changes shape: the 30-second model']},
+{'study2':['Inflation','Inflation explained with a loaf of bread over 10 years']},
+{'study2':['Democracy','Direct vs representative democracy with real examples']},
+{'study2':['Photosynthesis lab','Design a pondweed photosynthesis experiment with controls']},
+{'study2':['Trigonometry','SOH CAH TOA with a ladder-against-wall problem']},
+{'study2':['Cold war','Cold war timeline: 10 dates that mattered']},
+{'study2':['Poetry meter','Iambic pentameter with Shakespeare examples to clap along']},
+{'study2':['DNA bases','A-T-C-G pairing with a zipper analogy and quiz']}],
+[{'health':['Walk plan','30-day walking plan from couch to 8k steps']},
+{'health':['Water myth','How much water do I really need? Science, not myth']},
+{'health':['Desk pain','Fix neck pain from desk work: 5 moves + setup tips']},
+{'health':['Sleep hygiene','10 sleep rules ranked by evidence']},
+{'health':['Meal prep','5 cheap high-protein meal preps for the week']},
+{'health':['Sugar','Where sugar hides: 10 surprising foods']},
+{'health':['Anxiety tools','5 grounding techniques for anxious moments']},
+{'health':['Posture test','Test your posture in 60 seconds with a wall']},
+{'health':['Eye strain','20-20-20 rule and screen setup for programmers']},
+{'health':['Stretch break','3-minute desk stretch routine, seated']},
+{'health':['Breakfast','5-minute breakfasts with 20g protein']},
+{'health':['Running shoes','Pick running shoes: 6 fit checks in store']},
+{'health':['HIIT intro','First HIIT session: 12 minutes, no equipment']},
+{'health':['Back pain','McKenzie press-ups: what, how, when to stop']},
+{'health':['Caffeine','Caffeine timing: when coffee helps vs hurts sleep']},
+{'health':['Vitamins','Which supplements have evidence? Short honest list']},
+{'health':['Cold shower','Cold showers: claimed vs proven benefits']},
+{'health':['Habit loop','Build an exercise habit with cue-routine-reward']},
+{'health':['Rest day','Signs you need a rest day, checklist']},
+{'health':['Gym first','First gym visit plan: machines in order, no fear']}],
+[{'money':['Budget 50/30/20','Apply 50/30/20 to a $2000 income with numbers']},
+{'money':['Emergency fund','How big should my emergency fund be? Formula + example']},
+{'money':['Debt snowball','Debt snowball vs avalanche with a $5000 example']},
+{'money':['Freelance rate','Price my first freelance website: formula + script']},
+{'money':['Grocery cut','Cut groceries 25% without eating worse: 10 swaps']},
+{'money':['Compound','Show compounding with $100/month at 7% for 10 years']},
+{'money':['Scam check','Is this crypto DM a scam? 8 red flags']},
+{'money':['Salary talk','Negotiate a raise: exact script for the meeting']},
+{'money':['Tax basics','Income tax in one page: brackets, deductions, filing']},
+{'money':['Side income','Rank my skills by freelance earning potential']},
+{'money':['No-spend','Design my 7-day no-spend challenge with rules']},
+{'money':['Phone bill','Lower my phone bill: what to ask support, script']},
+{'money':['Invest start','First index fund steps with $500, jargon-free']},
+{'money':['Price anchor','Price my handmade soap: cost-plus walkthrough']},
+{'money':['Refund flight','Get a flight refund: EU261 vs US rules in brief']},
+{'money':['Warranty','Is the extended warranty worth it? Decision math']},
+{'money':['Tipping','Who to tip and how much: quick guide']},
+{'money':['Allowance','Teach a 10-year-old budgeting with jars']},
+{'money':['Audit me','Audit my spending from this list: cut $200: ']},
+{'money':['Rich habits','5 money habits of people who stay out of debt']}],
+[{'career2':['STAR story','Turn my internship into 3 STAR interview stories']},
+{'career2':['LinkedIn','Rewrite my LinkedIn headline: 5 options for a student dev']},
+{'career2':['Cold email','Cold email for an internship, 120 words, with subject lines']},
+{'career2':['Portfolio review','Critique my portfolio like a hiring manager, blunt']},
+{'career2':['Weakness Q','Answer "greatest weakness" without clichés, 3 versions']},
+{'career2':['Salary junior','Junior dev salary research method + negotiation script']},
+{'career2':['Career gap','Explain a 1-year gap honestly in cover letters']},
+{'career2':['Reference','Ask a professor for a reference: email template']},
+{'career2':['Freelance bio','One-paragraph freelance bio for Upwork, dev focus']},
+{'career2':['Promotion','Make my promotion case: brag-doc template + example']},
+{'career2':['Quit well','Resignation email that keeps the door open']},
+{'career2':['Burnout mail','Tell my manager I am overloaded: firm but professional']},
+{'career2':['Meeting notes','Turn messy notes into action items: ']},
+{'career2':['Feedback','Give tough feedback kindly: the SBI script with example']},
+{'career2':['Learn fast','Onboard to a new codebase in week 1: checklist']},
+{'career2':['Side project','Pick a portfolio project that gets interviews: 5 filters']},
+{'career2':['Open source','First open-source contribution steps for beginners']},
+{'career2':['Tech writing','Write a dev blog post that gets read: structure + example']},
+{'career2':['Conference','Propose a meetup talk: title + abstract that gets picked']},
+{'career2':['Mentor ask','Ask a senior for mentorship without being awkward']}],
+[{'lang':['Kinyarwanda hi','Teach 10 Kinyarwanda greetings with pronunciation']},
+{'lang':['French café','Order in a French café: full dialogue with notes']},
+{'lang':['Small talk','Small talk in English: 10 safe openers with replies']},
+{'lang':['Say sorry','Apologise in 3 tones: casual, formal, written']},
+{'lang':['Idioms','10 English idioms with literal vs real meaning']},
+{'lang':['Interview EN','Answer "tell me about yourself" in English, 3 levels']},
+{'lang':['Email EN','Formal vs casual email closings with examples']},
+{'lang':['Numbers FR','French numbers 1-100: the pattern behind 70-99']},
+{'lang':['Greetings DE','German greetings by time of day + politeness levels']},
+{'lang':['Travel ES','Survival Spanish for a week: 30 phrases ranked']},
+{'lang':['Pronounce','Why English spelling lies: 10 rules with examples']},
+{'lang':['Phrasal','12 phrasal verbs with "up" + quiz']},
+{'lang':['Tenses','Past simple vs present perfect: the timeline trick']},
+{'lang':['Articles','a vs the: the 5 rules that cover 90%']},
+{'lang':['Accent','Sound more natural: linking + weak forms drill']},
+{'lang':['Slang','10 current slang terms, what they mean, when NOT to use']},
+{'lang':['Debate EN','Useful phrases for classroom debates, 15 openers']},
+{'lang':['Story EN','Write my weekend in past tense, then correct me']},
+{'lang':['Phone EN','Phone call script: booking a dentist appointment']},
+{'lang':['Present','Open a presentation with 3 hook options for my topic']}],
+[{'parent':['Bedtime','3 calm bedtime stories, 150 words each']},
+{'parent':['Why sky','Explain why the sky is blue to a 5-year-old']},
+{'parent':['Sharing','Teach sharing with a 2-minute roleplay script']},
+{'parent':['Tantrum','Calm a supermarket tantrum: steps in the moment']},
+{'parent':['Homework','Homework without fights: routine that works']},
+{'parent':['Screen time','Age-based screen rules that do not start wars']},
+{'parent':['Lying','My 6-year-old lies: respond without shaming']},
+{'parent':['Chores chart','Chore chart by age with reward ideas']},
+{'parent':['Reading','Get a reluctant 8-year-old reading: 7 tricks']},
+{'parent':['Bully','Coach my kid through a bully situation, scripts included']},
+{'parent':['New sibling','Prepare a 4-year-old for a new sibling']},
+{'parent':['Travel kids','Survive a 6-hour drive with toddlers: kit list']},
+{'parent':['Money kids','Pocket money system that teaches saving']},
+{'parent':['Manners','10 manners that matter, how to model each']},
+{'parent':['Apologise','Teach a real apology: 4 parts with example']},
+{'parent':['Confidence','Build a shy kid\u2019s confidence: weekly plan']},
+{'parent':['Sleep train','Gentle bedtime routine that sticks in 7 days']},
+{'parent':['Picky eater','12 no-pressure tactics for picky eaters']},
+{'parent':['First day','First day of school pep talk + checklist']},
+{'parent':['Grandparents','Video-call games with grandparents, 10 ideas']}]);
+
+/* ---------------- wave 3: faq +40 ---------------------------------------- */
+AX_FAQ.push(
+['How do I pin one model?','Direct brain picker in sidebar or composer — Free group needs no key.'],
+['Which free brains exist?','Horde swarm plus every :free OpenRouter model. They rotate automatically.'],
+['Why is my key "refused"?','Wrong string, no credit, or revoked at the provider. Chains skip it instantly.'],
+['Do refused keys slow answers?','No — rotation moves on in milliseconds and narrates each skip.'],
+['Can I mix brains per message?','Yes: change Direct brain any time; each message uses the current pick.'],
+['What is :free?','OpenRouter models served free with limits — great defaults.'],
+['How do I add Ollama?','Advanced → Add API with your local endpoint; it joins Auto rotation.'],
+['Where do images come from?','Pollinations free renderers — square, wide, tall, icon.'],
+['Can I set image style?','Yes: the style field (photographic, flat vector, 3d render…).'],
+['Video length?','1–10 seconds, 4–16 fps. Short loops render fastest.'],
+['How are sources ranked?','Dedupe → relevance filter → Deep read pages first.'],
+['Can I trust snippets?','Snippets orient; Deep read pages decide. Open the chips to verify.'],
+['How do I cite?','Copy the [n] links under answers; export keeps them.'],
+['What is R in stats?','Recalls: memories reused from this session.'],
+['How is memory stored?','SQLite memory table per session; toggle with Memory button.'],
+['Can admins see chats?','Admins see accounts + login logs, not message contents.'],
+['How do I delete a user?','Admin verify panel → delete; key revoked with it.'],
+['What is @adelte.mab?','Your ADELTE identity domain — username becomes you@adelte.mab.'],
+['Avatar?','Account strip → upload any image; stored with your profile.'],
+['Do keys expire?','No expiry; daily limits reset at midnight server time.'],
+['How do I raise limits?','Server config daily_key_limit; restart to apply.'],
+['Can I run two servers?','Yes — different --port and --db each.'],
+['How do I update safely?','git pull → restart; DB migrates itself, .env untouched.'],
+['What Python version?','3.9 through 3.13+.'],
+['Install fails?','pip install fastapi uvicorn httpx selectolax — then retry.'],
+['Port in use?','python adelte.py --port 9000, or free it via Commander ports.'],
+['How do I log out?','Account menu → sign out; session key stays valid unless revoked.'],
+['Forgot password?','No reset flow yet — admin can delete + re-register the account.'],
+['Is there an app?','The UI is a web app (installable feel); Cargolis is the desktop twin.'],
+['Screen reader?','Semantic buttons + focus rings + high-contrast toggle in Settings.'],
+['Can I print chats?','Export or browser print — print stylesheet strips chrome.'],
+['How do I tour?','Type tour in the composer, or Ctrl+K → search Guide.'],
+['What is the palette?','Ctrl+K fuzzy finder: models, brains, prompts, actions.'],
+['How do I filter history?','Type in the Filter chats box above history.'],
+['j/k keys?','Move between messages hands-free when not typing.'],
+['Copy an answer?','Per-message Copy button under every bubble.'],
+['Hear an answer?','Per-message Speak button, or Voice toggle for auto-read.'],
+['Word counts?','Per-message Words button + live composer counter.'],
+['Share a chat?','Export .md and send the file — no accounts needed on the other end.']);
+
+/* ---------------- wave 3: flows +10, snips +24, cook +16, gallery +30 ---- */
+AX_FLOWS.push(
+{n:'First apartment',d:'Rent smart, live well.',s:['Rent budget rule with my income: ','Red flags on listings: 12 to check','Viewing checklist to print','Moving-day box plan by room','First grocery run list under $80']},
+{n:'Learn Excel fast',d:'Zero to pivot in a weekend.',s:['10 must-know formulas with examples','VLOOKUP vs XLOOKUP explained once','Pivot your first table step by step','Charts bosses love: 3 safe picks','Print-perfect sheets: setup checklist']},
+{n:'Start running',d:'Already covered? Deeper: 10k.',s:['From 5k to 10k: 6-week plan','Pace zones with the talk test','Long-run fueling basics','Shoe rotation: when to replace','Taper week before race day']},
+{n:'Freelance writing',d:'First paid words.',s:['3 niches ranked for beginners','Samples without clients: how','Pitch template with subject lines','Price per word: the math','Delivered late once: recovery mail']},
+{n:'Podcast launch',d:'Record to publish.',s:['10 episode ideas in my niche','$80 starter kit list','Record clean audio in a bedroom','Edit basics: cut ums in 30 min','Publish: hosting + directories steps']},
+{n:'Garden balcony',d:'Grow food in pots.',s:['5 crops that forgive beginners','Pot sizes that actually matter','Soil mix recipe on a budget','Water schedule by season','Pests: identify + organic fixes']},
+{n:'Photography basics',d:'Manual mode in a week.',s:['Aperture vs shutter vs ISO, finally clear','First 3 lenses explained simply','Golden hour plan for Saturday','Edit free: 5-slider method','Critique my photo: what to fix — ']},
+{n:'Public speaking',d:'No more shaky hands.',s:['Open with 3 hook types + examples','Structure any talk in 10 minutes','Slow down: 3 pacing drills','Handle hostile Q&A calmly','Dry-run checklist night before']},
+{n:'Save $1000',d:'90-day challenge.',s:['Find your leaks: 7-day audit','Cut 3 subscriptions painlessly','Meal-plan 4 dinners that repeat','No-spend weekend rules','Where to park the $1000 safely']},
+{n:'Teach a kid code',d:'Scratch to Python.',s:['First Scratch project in 20 minutes','5 unplugged games that teach loops','Move to Python turtle: first drawing','Debug together without taking over','Showcase night: present the game']});
+AX_SNIPS.push(
+['Python · csv read','python','import csv\nwith open("data.csv", encoding="utf-8") as f:\n    rows = list(csv.DictReader(f))\nprint(len(rows), "rows")'],
+['Python · json save','python','import json\njson.dump({"ok": True}, open("out.json", "w"), indent=2)'],
+['Python · walk files','python','from pathlib import Path\nfor p in Path(".").rglob("*.py"):\n    print(p)'],
+['Python · args','python','import argparse\nap = argparse.ArgumentParser()\nap.add_argument("--name", default="world")\na = ap.parse_args()\nprint("hi", a.name)'],
+['Python · env','python','import os\nkey = os.environ.get("API_KEY", "")\nassert key, "set API_KEY"'],
+['Python · serve dir','python','python -m http.server 8000  # run in terminal'],
+['JS · unique','javascript','const uniq = (xs) => [...new Set(xs)];'],
+['JS · sleep','javascript','const sleep = (ms) => new Promise((r) => setTimeout(r, ms));'],
+['JS · random','javascript','const ri = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;'],
+['JS · params','javascript','const q = new URLSearchParams(location.search).get("q");'],
+['JS · el','javascript','const el = (t, c) => {\n  const e = document.createElement(t);\n  if (c) e.className = c;\n  return e;\n};'],
+['JS · post','javascript','const r = await fetch("/api/chat", {\n  method: "POST",\n  headers: { "Content-Type": "application/json" },\n  body: JSON.stringify({ message: "hi" }),\n});'],
+['CSS · flex row','css','.row { display: flex; gap: 12px; align-items: center; }'],
+['CSS · sticky','css','.top { position: sticky; top: 0; backdrop-filter: blur(12px); }'],
+['CSS · dark img','css','[data-theme="dark"] img { filter: brightness(.92); }'],
+['CSS · focus','css',':focus-visible { outline: 2px solid #A855F7; outline-offset: 2px; }'],
+['SQL · search','sql',"SELECT * FROM notes\nWHERE title ILIKE '%plan%'\nORDER BY updated_at DESC;"],
+['SQL · daily count','sql','SELECT date(created_at) d, COUNT(*) n\nFROM events\nGROUP BY d\nORDER BY d DESC\nLIMIT 14;'],
+['Bash · biggest dirs','bash','du -h --max-depth=1 . | sort -hr | head'],
+['Bash · watch log','bash','tail -f app.log | grep --line-buffered ERROR'],
+['PowerShell · env','powershell','$env:PORT="8000"\npython adelte.py'],
+['PowerShell · zip','powershell','Compress-Archive -Path .\\dist\\* -DestinationPath app.zip'],
+['Git · temp branch','bash','git stash push -m wip\ngit checkout -b try-x'],
+['YAML · compose2','yaml','services:\n  db:\n    image: postgres:16\n    volumes: [pg:/var/lib/postgresql/data]\nvolumes:\n  pg:']);
+AX_COOK.push(
+['Stream tokens','POST /api/chat/stream SSE','{"message":"hi"}',''],
+['Chat deep off','POST /api/chat','{"message":"news","deep":false}',''],
+['Chat no memory','POST /api/chat','{"message":"hi","use_memory":false}',''],
+['Engines pick','POST /api/chat','{"message":"x","engines":["github","mdn"]}~'.replace('~',''),''],
+['Budget 20s','POST /api/chat','{"message":"hi","ai_budget":20}',''],
+['Commander lock','POST /api/commander/run','{"command":"lock"}',''],
+['Schedule it','POST /api/schedule','{"action":"sleep","seconds":600}',''],
+['IG status','GET /api/instagram/status','','curl localhost:8000/api/instagram/status'],
+['History','GET /api/history?sid=','','curl "localhost:8000/api/history?sid=ABC"'],
+['Clear chat','POST /api/clear','{"session_id":"ABC"}',''],
+['Stats','GET /api/stats','','curl localhost:8000/api/stats'],
+['Recall','POST /api/chat','{"message":"...","use_memory":true}',''],
+['Persona max','POST /api/chat','{"message":"decide X","model":"adelte-minimax"}',''],
+['Persona code','POST /api/chat','{"message":"build Y","model":"adelte-coder-3high"}',''],
+['Persona cargo','POST /api/chat','{"message":"fix Z","model":"adelte-cargolis"}',''],
+['Brain groq','POST /api/chat','{"message":"hi","brain":"groq:llama-3.3-70b-versatile"}','']);
+AX_GAL.push(
+['Habit tracker','HTML·JS','Streak dots, weekly view, reset',3084,'linear-gradient(135deg,#10B981,#84CC16)'],
+[' Budget buddy','HTML·JS','Income/expenses, bars, remaining',3085,'linear-gradient(135deg,#0EA5E9,#6366F1)'],
+[' Flash cards','HTML·JS','Flip animation, shuffle, score',3086,'linear-gradient(135deg,#8B5CF6,#EC4899)'],
+[' Recipe box','HTML·CSS','Cards, search, print view',3087,'linear-gradient(135deg,#F59E0B,#EF4444)'],
+[' Invoice gen','HTML·JS','Line items, totals, print',3088,'linear-gradient(135deg,#64748B,#0F172A)'],
+[' Landing dark','HTML·CSS','Hero, logos row, CTA, footer',3089,'linear-gradient(135deg,#7C3AED,#DB2777)'],
+[' SaaS pricing','HTML·JS','3 tiers, toggle, popular badge',3090,'linear-gradient(135deg,#4F46E5,#06B6D4)'],
+[' Docs site','HTML·CSS','Sidebar nav, code blocks, search box',3091,'linear-gradient(135deg,#0D9488,#14B8A6)'],
+[' Event invite','HTML·CSS','RSVP form, countdown, map link',3092,'linear-gradient(135deg,#F43F5E,#FB7185)'],
+[' Resume one-page','HTML·CSS','Print-perfect A4, skill bars',3093,'linear-gradient(135deg,#334155,#64748B)'],
+[' Gym plan','HTML·JS','Week split, checkboxes, progress',3094,'linear-gradient(135deg,#DC2626,#F97316)'],
+[' Book shelf','HTML·JS','Add books, ratings, filter read',3095,'linear-gradient(135deg,#92400E,#D97706)'],
+[' Expense chart','HTML·JS','Pie + bars from pasted CSV',3096,'linear-gradient(135deg,#2563EB,#60A5FA)'],
+[' Meeting notes','HTML·JS','Attendees, actions, export',3097,'linear-gradient(135deg,#4D7CFE,#7C3AED)'],
+[' Travel plan','HTML·JS','Day planner, costs, packing list',3098,'linear-gradient(135deg,#0891B2,#22D3A7)'],
+[' Study cards','HTML·JS','Decks, flip, mastery %',3099,'linear-gradient(135deg,#6D28D9,#A855F7)'],
+[' Joke machine','HTML·JS','Random jokes, favorites',3100,'linear-gradient(135deg,#FBBF24,#F97316)'],
+[' Quote daily','HTML·JS','Daily quote, copy, new',3101,'linear-gradient(135deg,#0F766E,#5EEAD4)'],
+[' Age calc','HTML·JS','Exact age, next birthday countdown',3102,'linear-gradient(135deg,#1E40AF,#818CF8)'],
+[' Tip split','HTML·JS','Bill, %, per-person',3103,'linear-gradient(135deg,#15803D,#86EFAC)'],
+[' Grade tracker','HTML·JS','Weighted grades, GPA',3104,'linear-gradient(135deg,#7C3AED,#C4B5FD)'],
+[' Sleep log','HTML·JS','Bed/wake times, chart',3105,'linear-gradient(135deg,#1E3A8A,#38BDF8)'],
+[' Plant care','HTML·JS','Water reminders, log',3106,'linear-gradient(135deg,#166534,#4ADE80)'],
+[' Movie list','HTML·JS','Watchlist, ratings, shuffle pick',3107,'linear-gradient(135deg,#9D174D,#F9A8D4)'],
+[' Workout timer','HTML·JS','Intervals, beeps, rounds',3108,'linear-gradient(135deg,#B45309,#FCD34D)'],
+[' Lyrics finder','HTML·JS','Search box UI, favorites',3109,'linear-gradient(135deg,#5B21B6,#DDD6FE)'],
+[' Currency toy','HTML·JS','Static rates table, convert',3110,'linear-gradient(135deg,#0C4A6E,#7DD3FC)'],
+[' Dice stats','HTML·JS','Roll 1000x, histogram bars',3111,'linear-gradient(135deg,#7F1D1D,#FCA5A5)'],
+[' Compliment bot','HTML·JS','Random kindness, share',3112,'linear-gradient(135deg,#BE185D,#FDA4AF)'],
+[' Focus list','HTML·JS','One big goal + 3 tasks daily',3113,'linear-gradient(135deg,#14532D,#BBF7D0)'],);
+
+/* ---------------- help tabs --------------------------------------------- */
+var AX_TABS=['Guide','Engines','Models','Flows','Snippets','FAQ','Cheats','Logos','Manual','Learn','Gallery','Command'];
+var AX_WALL=[
+ ['Groq','groq.com'],['Gemini','gemini.google.com'],
+ ['OpenRouter','openrouter.ai'],['OpenAI','openai.com'],
+ ['Together AI','together.ai'],['Cerebras','cerebras.ai'],
+ ['Mistral AI','mistral.ai'],['Clarifai','clarifai.com'],
+ ['Google','google.com'],['Telegram','telegram.org'],
+ ['Spice.ai','spice.ai'],['Databricks','databricks.com']];
+function axBuildTabs(){
+  var sheet=document.querySelector('.helpsheet'); if(!sheet||$('axtabs')) return;
+  var closeP=sheet.querySelector('#axhelpclose');
+  closeP=closeP?closeP.closest('p'):null;
+  if(closeP) sheet.removeChild(closeP);
+  if(!sheet.dataset.guide) sheet.dataset.guide=sheet.innerHTML;
+  var nav=document.createElement('div');
+  nav.id='axtabs';
+  nav.style.cssText='display:flex;gap:6px;flex-wrap:wrap;margin:12px 0;position:sticky;top:-24px;background:var(--panel);padding:10px 0;z-index:2;';
+  nav.innerHTML=AX_TABS.map(function(t,i){
+    return '<button class="btn" data-tab="'+t+'" style="width:auto;padding:7px 13px;'+
+      (i===0?'border-color:var(--violet);':'')+'">'+t+'</button>';
+  }).join('');
+  var body=document.createElement('div'); body.id='axtabbody';
+  sheet.innerHTML='';
+  sheet.appendChild(nav); sheet.appendChild(body);
+  if(closeP) sheet.appendChild(closeP);
+  var cb=$('axhelpclose'); if(cb) cb.onclick=function(){axHelp(false);};
+  nav.querySelectorAll('button').forEach(function(b){
+    b.onclick=function(){
+      nav.querySelectorAll('button').forEach(function(x){x.style.borderColor='';});
+      b.style.borderColor='var(--violet)';
+      axTab(b.dataset.tab,body);
+    };
+  });
+  axTab('Guide',body);
+}
+function axTab(name,body){
+  if(name==='Guide'){
+    body.innerHTML='<p class="keymsg">Five brains, sixteen engines, one composer.</p>'+
+      document.querySelector('.helpsheet').dataset.guide||'';
+    return;
+  }
+  if(name==='Engines'){
+    body.innerHTML='<div class="admingrid">'+AX_ENGINES.map(function(e){
+      return '<div class="admcard"><b style="font-size:13px">'+esc(e.n)+'</b>'+
+        '<span>'+esc(e.w)+'</span><br><span>Use: '+esc(e.u)+'</span><br>'+
+        '<button class="prompt" data-q="'+esc(e.t.replace(/^Try: /,''))+
+        '" style="margin-top:6px">'+esc(e.t)+'</button></div>';
+    }).join('')+'</div>';
+  }else if(name==='Models'){
+    body.innerHTML=AX_MODELS.map(function(m){
+      return '<div class="admcard" style="margin-bottom:8px;border-left:3px solid '+m.c+'">'+
+        '<b style="font-size:13px">'+esc(m.n)+'</b><br><span>For: '+esc(m.for)+'</span><br>'+
+        '<span>Best: '+esc(m.best)+'</span><br><span>Limits: '+esc(m.lim)+'</span><br>'+
+        '<button class="prompt" data-q="'+esc(m.try)+'" style="margin-top:6px">Try: '+
+        esc(m.try)+'</button></div>';
+    }).join('');
+  }else if(name==='Flows'){
+    body.innerHTML=AX_FLOWS.map(function(f,i){
+      return '<details class="adv"'+(i===0?' open':'')+'><summary><b>'+esc(f.n)+
+        '</b> — '+esc(f.d)+'</summary>'+
+        f.s.map(function(s,j){
+          return '<button class="prompt" data-q="'+esc(s)+'" style="margin:4px 0">'+
+          '<span class="pk">step '+(j+1)+'</span>'+esc(s)+'</button>';
+        }).join('')+'</details>';
+    }).join('');
+  }else if(name==='Snippets'){
+    body.innerHTML='<label class="fld"><span>Filter</span>'+
+      '<input id="axsnipq" placeholder="python, css, git…"></label>'+
+      '<div id="axsnips">'+axSnips('')+'</div>';
+    $('axsnipq').oninput=function(){ $('axsnips').innerHTML=axSnips(this.value); axSnipBind(); };
+    axSnipBind();
+    return;
+  }else if(name==='FAQ'){
+    body.innerHTML=AX_FAQ.map(function(f){
+      return '<details class="adv"><summary><b>'+esc(f[0])+'</b></summary>'+
+        '<p style="margin:6px 0">'+esc(f[1])+'</p></details>';
+    }).join('');
+  }else if(name==='Logos'){
+    body.innerHTML='<p class="keymsg">Every engine, badged. Real logo images '+
+      'load when online; house-colour initials show when offline.</p>'+
+      '<div class="admingrid">'+AX_WALL.map(function(w){
+        return '<div class="admcard" style="text-align:center;padding:14px 8px">'+
+          '<img src="https://logo.clearbit.com/'+w[1]+'" alt="'+esc(w[0])+
+          ' logo" loading="lazy" style="width:44px;height:44px;object-fit:contain;'+
+          'background:#fff;border-radius:10px;padding:4px" '+
+          'onerror="this.style.display=\'none\'">'+
+          '<b style="font-size:12px;margin-top:6px">'+esc(w[0])+'</b></div>';
+      }).join('')+'</div>';
+  }else if(name==='Manual'){
+    body.innerHTML='<p class="keymsg">The operator manual — install to hosting to debugging.</p>'+
+      '<div class="manual">'+AX_MANUAL.map(function(c){
+        return '<h4>'+esc(c.t)+'</h4><ul>'+c.b.map(function(p){
+          return '<li>'+p+'</li>';}).join('')+'</ul>';
+      }).join('')+'</div>';
+  }else if(name==='Learn'){
+    body.innerHTML='<p class="keymsg">Ten guided lessons — each step loads into the composer.</p>'+
+      AX_TUTS.map(function(t,i){
+        return '<details class="adv"'+(i===0?' open':'')+'><summary><b>'+
+          esc(t.t)+'</b></summary>'+
+          t.s.map(function(s,j){
+            return '<div class="tutstep"><b>Step '+(j+1)+' — '+esc(s[0])+'</b><p>'+
+              esc(s[1])+'</p><button class="prompt" data-q="'+esc(s[0]+': ') +
+              '">Load step</button></div>';
+          }).join('')+'</details>';
+      }).join('');
+  }else if(name==='Gallery'){
+    body.innerHTML='<p class="keymsg">60 build starters — tap one, the full spec lands in the composer.</p>'+
+      '<label class="fld"><span>Filter</span>'+
+      '<input id="axgalq" placeholder="dashboard, game, dark…"></label>'+
+      '<div class="galgrid" id="axgalg"></div>';
+    var drawGal=function(){
+      var q=(($('axgalq')||{}).value||'').toLowerCase();
+      $('axgalg').innerHTML=AX_GAL.filter(function(g){
+        return !q||(g[0]+' '+g[1]+' '+g[2]).toLowerCase().indexOf(q)>-1;
+      }).map(function(g){
+        var spec='Build this in ONE self-contained HTML file: '+g[0]+
+          ' ('+g[1]+'). Features: '+g[2]+' Real working logic, no placeholders, no TODOs.';
+        return '<div class="galcard"><div class="galprev" style="background:'+g[4]+'">'+
+          esc(g[0])+'</div><div class="galbody"><b>'+esc(g[0])+'</b><p>'+
+          esc(g[1])+' · '+esc(g[2])+'</p>'+
+          '<button class="prompt" data-q="'+esc(spec)+'">Build this</button></div></div>';
+      }).join('')||'<p class="keymsg">No match.</p>';
+      $('axgalg').querySelectorAll('[data-q]').forEach(function(b){
+        b.onclick=function(){ setComposer(b.dataset.q); axHelp(false); toastm('Loaded — press Enter'); };
+      });
+    };
+    drawGal();
+    $('axgalq').oninput=drawGal;
+  }else if(name==='Command'){
+    body.innerHTML='<p class="keymsg">Every PC command — tap Run (acts on the server machine).</p>'+
+      '<label class="fld"><span>Filter</span>'+
+      '<input id="axcmdq" placeholder="lock, wifi, volume…"></label>'+
+      '<div id="axcmds"><p class="keymsg">Loading catalog…</p></div>';
+    (async function(){
+      try{
+        var u=(typeof window.api==='function')?window.api('/api/commander/catalog'):((window.API||'')+'/api/commander/catalog');
+        var r=await fetch(u); var j=await r.json();
+        var groups=j.groups||{}, q=(($('axcmdq')||{}).value||'').toLowerCase();
+        var h='';
+        Object.keys(groups).forEach(function(g){
+          var items=groups[g].filter(function(c){
+            return !q||(c.word+' '+c.label).toLowerCase().indexOf(q)>-1;});
+          if(!items.length) return;
+          h+='<h3 style="font-size:13px;margin:14px 0 6px">'+esc(g)+'</h3>';
+          items.forEach(function(c){
+            h+='<div class="admrow"><code style="font-size:11px">'+esc(c.word)+'</code> '+
+              '<span>'+esc(c.label)+'</span>'+
+              (c.confirm?'<span class="no2">asks first</span>':'')+
+              '<button class="prompt" style="margin-left:auto;width:auto" data-cmd="'+
+              esc(c.word)+'">Run</button></div>';
+          });
+        });
+        $('axcmds').innerHTML=h||'<p class="keymsg">No match.</p>';
+        $('axcmds').querySelectorAll('[data-cmd]').forEach(function(b){
+          b.onclick=async function(){
+            b.textContent='…';
+            try{
+              var u2=(typeof window.api==='function')?window.api('/api/commander/run'):((window.API||'')+'/api/commander/run');
+              var r2=await fetch(u2,{method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({command:b.dataset.cmd})});
+              var j2=await r2.json();
+              b.textContent=j2.ran?'Done':(j2.needs_confirm?'Confirm?':'Info');
+              toastm((j2.answer||j2.label||'done').slice(0,160));
+            }catch(e){b.textContent='Run';toastm('Command failed');}
+          };
+        });
+        var qq=$('axcmdq');
+        if(qq) qq.oninput=function(){
+          var v=qq.value;
+          Object.keys(groups).forEach(function(){});
+          $('axcmds').querySelectorAll('.admrow').forEach(function(row){
+            row.style.display=(!v||row.textContent.toLowerCase().indexOf(v.toLowerCase())>-1)?'':'none';
+          });
+        };
+      }catch(e){
+        $('axcmds').innerHTML='<p class="keymsg">Catalog unreachable — is the server running?</p>';
+      }
+    })();
+  }else{
+    body.innerHTML=AX_SHEETS.map(function(s){
+      return '<h3 style="font-size:13px;margin:14px 0 6px">'+esc(s.n)+'</h3>'+
+        '<table><tr><th>Want</th><th>Run</th></tr>'+
+        s.rows.map(function(r){
+          return '<tr><td>'+esc(r[0])+'</td><td><code>'+esc(r[1])+'</code></td></tr>';
+        }).join('')+'</table>';
+    }).join('');
+  }
+  body.querySelectorAll('[data-q]').forEach(function(b){
+    b.onclick=function(){ setComposer(b.dataset.q); axHelp(false); toastm('Loaded — press Enter'); };
+  });
+}
+function axSnips(q){
+  q=(q||'').toLowerCase();
+  return AX_SNIPS.filter(function(s){
+    return !q||(s[0]+' '+s[1]+' '+s[2]).toLowerCase().indexOf(q)>-1;
+  }).map(function(s){
+    return '<div class="admcard" style="margin-bottom:8px"><b style="font-size:12px">'+
+      esc(s[0])+' <span class="pk" style="font-size:9px;color:var(--violet)">'+
+      esc(s[1])+'</span></b><pre style="font-size:11px;overflow-x:auto;margin:6px 0">'+
+      esc(s[2])+'</pre><button class="prompt" data-c="'+esc(s[2])+'">Copy snippet</button></div>';
+  }).join('')||'<p class="keymsg">No match.</p>';
+}
+function axSnipBind(){
+  document.querySelectorAll('#axsnips [data-c]').forEach(function(b){
+    b.onclick=function(){
+      try{navigator.clipboard.writeText(b.dataset.c);toastm('Snippet copied');}
+      catch(e){toastm('Copy failed');}
+    };
+  });
+}
+
+/* ---------------- session stats card ------------------------------------ */
+function axStats(){
+  if($('axstats')) return;
+  try{
+    var anchor=$('opensettings'); if(!anchor) return;
+    var sec=document.createElement('div'); sec.className='sec'; sec.id='axstats';
+    var st={}; try{st=JSON.parse(localStorage.getItem('ax_stats')||'{}');}catch(e){st={};}
+    st.sent=st.sent||0; st.words=st.words||0;
+    sec.innerHTML='<div class="sech"><svg class="i"><use href="#i-brain"/></svg>'+
+      'Your stats</div><div class="card"><div class="admingrid">'+
+      '<div class="admcard"><b id="axst-sent">'+st.sent+'</b><span>messages sent</span></div>'+
+      '<div class="admcard"><b id="axst-words">'+st.words+'</b><span>words typed</span></div>'+
+      '</div><div class="keymsg">Counted in this browser only.</div></div>';
+    anchor.closest('.sec').parentNode.insertBefore(sec,anchor.closest('.sec'));
+    var go=$('go');
+    if(go) go.addEventListener('click',function(){
+      try{
+        var q=($('q')||{}).value||'';
+        st.sent++; st.words+=q.split(/\s+/).filter(Boolean).length;
+        localStorage.setItem('ax_stats',JSON.stringify(st));
+        var a=$('axst-sent'),b=$('axst-words');
+        if(a)a.textContent=st.sent; if(b)b.textContent=st.words;
+      }catch(e){}
+    });
+  }catch(e){}
+}
+
+/* ---------------- boot ---------------------------- */
+function axBoot3(){
+  function tryTabs(){
+    var sheet=document.querySelector('.helpsheet');
+    if(sheet) axBuildTabs();
+  }
+  new MutationObserver(tryTabs)
+    .observe(document.body,{childList:true,subtree:true});
+  tryTabs();
+  axStats();
+}
+if(document.readyState==='loading')
+  document.addEventListener('DOMContentLoaded',axBoot3);
+else axBoot3();
+})();
+</script>
+<script>
+/* ============================================================
+   ADELTE X touch — cookbook tab, per-message actions, history
+   search, vim keys, reading stats. Additive observer layer.
+   ============================================================ */
+(function(){
+'use strict';
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,
+  function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function toastm(t){try{if(typeof window.toast==='function')window.toast(t,'ok');}catch(e){}}
+
+/* ---------------- API cookbook (24 copy-paste calls) -------------------- */
+var AX_COOK=[
+['Health','GET /api/health','', 'curl localhost:8000/api/health'],
+['Chat','POST /api/chat','{"message":"hi"}', 'curl -X POST localhost:8000/api/chat -H "Content-Type: application/json" -d \'{"message":"hi"}\''],
+['Chat + model','POST /api/chat','{"message":"build a clock","model":"adelte-coder-3high"}', ''],
+['Direct brain','POST /api/chat','{"message":"hi","brain":"groq:llama-3.3-70b-versatile"}', ''],
+['Stream','POST /api/chat/stream','{"message":"hi"}', 'curl -N -X POST localhost:8000/api/chat/stream -H "Content-Type: application/json" -d \'{"message":"hi"}\''],
+['Search','GET /api/search?q=','', 'curl "localhost:8000/api/search?q=quantum&deep=false"'],
+['Search code','GET /api/search','engines=github,stackoverflow', ''],
+['Models','GET /api/models','', 'curl localhost:8000/api/models'],
+['Raw brains','GET /api/models/raw','', 'curl localhost:8000/api/models/raw'],
+['Engines','GET /api/engines','', 'curl localhost:8000/api/engines'],
+['Integ status','GET /api/integrations/status','', 'curl localhost:8000/api/integrations/status'],
+['Integ test','GET /api/integrations/test','', 'curl localhost:8000/api/integrations/test'],
+['Make image','POST /api/image','{"prompt":"a fox at dawn","size":"wide"}', ''],
+['Get image','GET /api/image?prompt=','', 'curl "localhost:8000/api/image?prompt=fox&size=square" -o fox.jpg'],
+['Make video','POST /api/video','{"prompt":"waves","seconds":4}', ''],
+['Commander list','GET /api/commander/catalog','', 'curl localhost:8000/api/commander/catalog'],
+['Commander run','POST /api/commander/run','{"command":"specs"}', ''],
+['Cargolis text','POST /api/cargolis/analyse','{"text":"TypeError: x","task":"fix"}', ''],
+['Cargolis shot','POST /api/cargolis/analyse','{"image":"<b64>","task":"auto"}', ''],
+['Register','POST /api/auth/register','{"username":"bon","password":"secret123"}', ''],
+['Login','POST /api/auth/login','{"username":"bon","password":"secret123"}', ''],
+['Mint key','POST /api/keys/generate','{"label":"my app"}', 'curl -X POST localhost:8000/api/keys/generate -H "Content-Type: application/json" -d \'{"label":"my app"}\''],
+['Admin view','GET /api/admin/overview','', 'curl localhost:8000/api/admin/overview'],
+['Logo','GET /logo.svg','', 'curl localhost:8000/logo.svg -o logo.svg']];
+
+/* ---------------- per-message copy + speak ------------------------------ */
+function axMsgBar(m){
+  if(m.querySelector('.axmacts')) return;
+  var bub=m.querySelector('.bub'); if(!bub) return;
+  var bar=document.createElement('div');
+  bar.className='xbar axmacts'; bar.style.cssText='margin:8px 0 0;justify-content:flex-start';
+  bar.innerHTML='<button>Copy</button><button>Speak</button><button>Words</button>';
+  var btns=bar.querySelectorAll('button');
+  btns[0].onclick=function(){
+    try{navigator.clipboard.writeText(bub.innerText||'');toastm('Copied');}
+    catch(e){toastm('Copy failed');}};
+  btns[1].onclick=function(){
+    try{
+      if(!window.speechSynthesis){toastm('No voice in this browser');return;}
+      window.speechSynthesis.cancel();
+      var u=new SpeechSynthesisUtterance((bub.innerText||'').slice(0,900));
+      window.speechSynthesis.speak(u);
+    }catch(e){}};
+  btns[2].onclick=function(){
+    var w=(bub.innerText||'').split(/\s+/).filter(Boolean).length;
+    toastm(w+' words · ~'+Math.max(1,Math.round(w/200))+' min read');};
+  bub.appendChild(bar);
+}
+new MutationObserver(function(){
+  document.querySelectorAll('#inner .msg').forEach(axMsgBar);
+}).observe(document.documentElement,{childList:true,subtree:true});
+
+/* ---------------- history search ---------------------------------------- */
+function axHistSearch(){
+  if($('axhistq')||!$('histlist')) return;
+  var inp=document.createElement('input');
+  inp.id='axhistq'; inp.placeholder='Filter chats…';
+  inp.style.cssText='width:100%;background:var(--bg);border:1px solid var(--line);'+
+    'border-radius:9px;padding:7px 10px;color:var(--tx);font-size:12px;margin-bottom:7px';
+  inp.oninput=function(){
+    var q=inp.value.toLowerCase();
+    document.querySelectorAll('#histlist > *').forEach(function(el){
+      el.style.display=(!q||(el.textContent||'').toLowerCase().indexOf(q)>-1)?'':'none';
+    });
+  };
+  $('histlist').parentNode.insertBefore(inp,$('histlist'));
+}
+
+/* ---------------- vim keys j/k + gg ------------------------------------- */
+document.addEventListener('keydown',function(e){
+  var tag=((e.target&&e.target.tagName)||'').toLowerCase();
+  if(tag==='input'||tag==='textarea'||e.ctrlKey||e.metaKey) return;
+  if(e.key==='j'||e.key==='k'){
+    var ms=Array.prototype.slice.call(document.querySelectorAll('#inner .msg'));
+    if(!ms.length) return;
+    var y=window.scrollY, best=0, bd=1e12;
+    ms.forEach(function(m,i){
+      var d=Math.abs((m.getBoundingClientRect().top+window.scrollY)-y-120);
+      if(d<bd){bd=d;best=i;}});
+    var n=e.key==='j'?Math.min(ms.length-1,best+1):Math.max(0,best-1);
+    ms[n].scrollIntoView({block:'start',behavior:'smooth'});
+  }
+});
+
+/* ---------------- cookbook tab wiring ----------------------------------- */
+function axCookHTML(){
+  return '<p class="keymsg">Copy-paste server calls. JSON bodies go in POSTs.</p>'+
+    AX_COOK.map(function(c){
+      var demo=c[3]||((c[1].indexOf('GET')===0)?
+        ('curl localhost:8000'+c[1].split(' ')[1].split('?')[0]):
+        ('curl -X POST localhost:8000'+c[1].split(' ')[1]+
+         ' -H "Content-Type: application/json" -d \''+c[2]+'\''));
+      return '<div class="admcard" style="margin-bottom:8px"><b style="font-size:12px">'+
+        esc(c[0])+' <span style="color:var(--violet)">'+esc(c[1])+'</span></b>'+
+        (c[2]?'<pre style="font-size:11px;overflow-x:auto;margin:6px 0">'+esc(c[2])+'</pre>':'')+
+        '<button class="prompt" data-c="'+esc(demo)+'">Copy call</button></div>';
+    }).join('');
+}
+/* ---------------- cookbook appended to Cheats tab ------------------------- */
+function axCookBind(root){
+  root.querySelectorAll('[data-c]').forEach(function(b){
+    if(b.dataset.axb) return; b.dataset.axb='1';
+    b.onclick=function(){
+      try{navigator.clipboard.writeText(b.dataset.c);toastm('Call copied');}
+      catch(e){toastm('Copy failed');}};
+  });
+}
+new MutationObserver(function(){
+  var body=$('axtabbody'); if(!body||$('axcook')) return;
+  if(body.textContent.indexOf('cURL API')<0) return;
+  var d=document.createElement('div'); d.id='axcook';
+  d.innerHTML='<h3 style="font-size:13px;margin:16px 0 6px">API cookbook — copy-paste calls</h3>'+
+    axCookHTML();
+  body.appendChild(d); axCookBind(d);
+}).observe(document.documentElement,{childList:true,subtree:true});
+function axBoot4(){
+  axHistSearch();
+  setInterval(axHistSearch,4000);
+  document.querySelectorAll('#inner .msg').forEach(axMsgBar);
+}
+if(document.readyState==='loading')
+  document.addEventListener('DOMContentLoaded',axBoot4);
+else axBoot4();
+})();
+</script>
+<script>
+/* ============================================================
+   ADELTE X chrome — progress, back-to-top, counter, tour-lite.
+   ============================================================ */
+(function(){
+'use strict';
+function $(id){return document.getElementById(id);}
+function toastm(t){try{if(typeof window.toast==='function')window.toast(t,'ok');}catch(e){}}
+var bar=document.createElement('div'); bar.id='axprogress';
+document.body.appendChild(bar);
+var top=document.createElement('button'); top.id='axbacktop'; top.title='Back to top';
+top.innerHTML='<svg class="i" style="width:16px;height:16px"><use href="#i-chevron"/></svg>';
+document.body.appendChild(top);
+top.onclick=function(){var c=$('chat'); if(c) c.scrollTo({top:0,behavior:'smooth'});};
+var chat=$('chat');
+if(chat) chat.addEventListener('scroll',function(){
+  var max=chat.scrollHeight-chat.clientHeight;
+  bar.style.width=(max>0?(chat.scrollTop/max*100):0)+'%';
+  top.classList.toggle('show',chat.scrollTop>600);
+});
+var q=$('q');
+if(q){
+  var cnt=document.createElement('div');
+  cnt.className='keymsg'; cnt.style.cssText='text-align:right;margin-top:4px';
+  q.closest('.cbox').appendChild(cnt);
+  q.addEventListener('input',function(){
+    var w=(q.value||'').split(/\s+/).filter(Boolean).length;
+    cnt.textContent=w? (w+' words') : '';
+  });
+}
+var AX_TOUR=[
+ ['mdlpick','1/5 · Brains — pick Search, Coder, Max, Commander or Cargolis here.'],
+ ['brainpick','2/5 · Direct brain — pin ONE engine, or leave Auto for the chain.'],
+ ['integtest','3/5 · Integrations — Test all live pings every API for real.'],
+ ['promptlib','4/5 · Prompts — 200 starters; tap one to fill the composer.'],
+ ['q','5/5 · Composer — ask, build, command. Ctrl+K opens the palette.']];
+function axTour(i){
+  document.querySelectorAll('.tourspot').forEach(function(e){e.classList.remove('tourspot');});
+  var t=$('axtour'); if(t) t.remove();
+  if(i>=AX_TOUR.length){toastm('Tour done — press Ctrl+K any time');return;}
+  var el=$(AX_TOUR[i][0]);
+  if(!el){axTour(i+1);return;}
+  el.classList.add('tourspot');
+  el.scrollIntoView({block:'center',behavior:'smooth'});
+  var box=document.createElement('div'); box.id='axtour';
+  var r=el.getBoundingClientRect();
+  box.style.left=Math.min(window.innerWidth-320,Math.max(10,r.left))+'px';
+  box.style.top=Math.min(window.innerHeight-160,r.bottom+10)+'px';
+  box.innerHTML='<b>ADELTE tour</b>'+AX_TOUR[i][1]+
+    '<div class="tbtns"><button class="btn pri" id="axtnext">Next</button>'+
+    '<button class="btn" id="axtskip">Skip</button></div>';
+  document.body.appendChild(box);
+  box.classList.add('show');
+  $('axtnext').onclick=function(){axTour(i+1);};
+  $('axtskip').onclick=function(){axTour(99);};
+}
+window.axTour=axTour;
+setTimeout(function(){
+  try{
+    if(!localStorage.getItem('ax_toured')){
+      localStorage.setItem('ax_toured','1');
+      toastm('New here? Press Ctrl+K, or type: tour');
+    }
+  }catch(e){}
+},2500);
+var _q=$('q');
+if(_q) _q.addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&!e.shiftKey&&_q.value.trim().toLowerCase()==='tour'){
+    e.preventDefault(); _q.value=''; axTour(0);
+  }
+});
+})();
+</script>
 <script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2aaa8ab2c61b970',t:'MTc4NjY1NDkyNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

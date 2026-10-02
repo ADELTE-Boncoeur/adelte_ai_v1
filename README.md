@@ -51,6 +51,16 @@ local server for full Siri-style control of your own machine.
 - `adelte-commander` — local system commands only
 - `adelte-cargolis` — desktop/screenshot assistant
 
+## UI X (adelte.html)
+
+New logo mark (also at `GET /logo.svg`), per-provider logo badges with
+offline fallback, **Direct brain picker** (any of 22 engines: Free group +
+Keyed group, override sent as `brain: "provider:model"`), integrations panel
+with live ping test, prompt library (400+), command palette (`Ctrl+K`),
+12-tab help (engines, models, flows, snippets, FAQ, cheats, logos, manual,
+learn, gallery, command), export (.md/.txt/.json), 7 accent themes, per-message
+copy/speak/words, history search, tour (`tour` in composer).
+
 ## Push to GitHub
 
 ```bash

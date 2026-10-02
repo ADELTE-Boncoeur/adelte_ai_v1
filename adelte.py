@@ -336,6 +336,48 @@ PROVIDERS = {
 }
 
 
+# ---------------------------------------------------------------------------
+#  PROVIDER BRANDS — real logo images (hotlinked, token-free logo service)
+#  plus original initial-marks as the offline fallback. No trademarked files
+#  are shipped; the browser fetches images only when online, and every badge
+#  degrades to its house-colour initials when offline.
+# ---------------------------------------------------------------------------
+def _logo(domain: str) -> str:
+    return "https://logo.clearbit.com/" + domain
+
+
+PROVIDER_BRAND = {
+    "groq": {"color": "#F55036", "glow": "#B32E1B", "mark": "GQ",
+             "logo": _logo("groq.com")},
+    "openrouter": {"color": "#8B5CF6", "glow": "#5B21B6", "mark": "OR",
+                   "logo": _logo("openrouter.ai")},
+    "gemini": {"color": "#4796E3", "glow": "#1A56DB", "mark": "GE",
+               "logo": _logo("gemini.google.com")},
+    "cerebras": {"color": "#FF6B35", "glow": "#C2410C", "mark": "CE",
+                 "logo": _logo("cerebras.ai")},
+    "together": {"color": "#3B82F6", "glow": "#1D4ED8", "mark": "TO",
+                 "logo": _logo("together.ai")},
+    "mistral": {"color": "#FF7000", "glow": "#C2410C", "mark": "MI",
+                "logo": _logo("mistral.ai")},
+    "openai": {"color": "#10A37F", "glow": "#0B6E54", "mark": "AI",
+               "logo": _logo("openai.com")},
+    "clarifai": {"color": "#0BACB8", "glow": "#076E75", "mark": "CL",
+                 "logo": _logo("clarifai.com")},
+    "databricks": {"color": "#FF3621", "glow": "#B32517", "mark": "DB",
+                   "logo": _logo("databricks.com")},
+    "horde": {"color": "#A855F7", "glow": "#7C3AED", "mark": "H",
+              "logo": _logo("aihorde.net")},
+}
+PROVIDER_LOGO_MD = {
+    pid: "![%s](%s)" % (PROVIDER_BRAND[pid].get("mark", pid),
+                        PROVIDER_BRAND[pid]["logo"])
+    for pid in PROVIDER_BRAND if PROVIDER_BRAND[pid].get("logo")
+}
+PROVIDER_LOGO_MD["google_cse"] = "![Google](https://logo.clearbit.com/google.com)"
+PROVIDER_LOGO_MD["telegram"] = "![Telegram](https://logo.clearbit.com/telegram.org)"
+PROVIDER_LOGO_MD["spice"] = "![Spice.ai](https://logo.clearbit.com/spice.ai)"
+
+
 #  THE THREE ADELTE MODELS. The user picks one of these - never a raw
 #  provider name. Each is a persona + an ordered chain of providers to try.
 ADELTE_MODELS = {
@@ -4303,15 +4345,41 @@ async def call_gemini(c: httpx.AsyncClient, model: str, messages: list,
     return (txt or "").strip() or None, ""
 
 
+def parse_brain(spec: Optional[str]) -> Optional[Tuple[str, str]]:
+    """Turn 'groq:llama-3.3-70b-versatile' into a ready single-link chain.
+
+    Additive override for the "use any model" picker. Unknown providers,
+    empty models and keyless entries are ignored (returns None) so a bad
+    value can never break answering — the normal chain just runs.
+    """
+    if not spec or ":" not in spec:
+        return None
+    pid, model = spec.split(":", 1)
+    pid, model = pid.strip().lower(), model.strip()
+    if pid not in PROVIDERS or not model or pid == "horde":
+        return None
+    return (pid, model)
+
+
 async def generate_with_model(c: httpx.AsyncClient, mid: str, messages: list,
-                              budget: float, emit=None) -> Tuple[Optional[str], str]:
+                              budget: float, emit=None,
+                              brain: str = "") -> Tuple[Optional[str], str]:
     """Walk the model's provider chain until one answers.
 
     Returns (text, provider_label). Every failure is narrated to the UI so
     the user can see exactly which brain answered and which one refused.
+    `brain` is a 'provider:model' override from the direct-brain picker.
     """
     cfg = model_cfg(mid)
     chain = live_chain(mid)
+    if brain:
+        custom = parse_brain(brain)
+        if custom and provider_ready(custom[0]):
+            if emit:
+                await emit("thinking", {"text": "Direct brain: %s %s"
+                                          % (PROVIDERS[custom[0]]["label"],
+                                             custom[1].split("/")[-1]), "p": 58})
+            chain = [custom]
     if not chain:
         if emit:
             await emit("thinking", {"text": "No API keys in .env - using the "
@@ -5269,13 +5337,13 @@ def usable_answer(text: Optional[str], strict: bool = True) -> bool:
 
 async def ai_answer(c: httpx.AsyncClient, messages: list[dict],
                     budget: float, on_progress=None,
-                    model: str = "") -> Optional[str]:
+                    model: str = "", brain: str = "") -> Optional[str]:
     """Answer with the best brain available.
 
     The keyed providers (Groq/OpenRouter/Gemini) come first because they are
     fast and can return a whole file. The free swarm is capped at 500 tokens
     and used only as the last resort - going straight to it was truncating
-    long code half way through.
+    long code half way through. `brain` forces one direct engine.
     """
     if not CFG.use_ai:
         return None
@@ -5283,6 +5351,10 @@ async def ai_answer(c: httpx.AsyncClient, messages: list[dict],
         chain = live_chain(model or DEFAULT_MODEL)
     except Exception:
         chain = []
+    if brain:
+        custom = parse_brain(brain)
+        if custom and provider_ready(custom[0]):
+            chain = [custom]
     if chain:
         async def _em(kind, payload):
             if on_progress:
@@ -5292,7 +5364,7 @@ async def ai_answer(c: httpx.AsyncClient, messages: list[dict],
                 except Exception:
                     pass
         txt, _who = await generate_with_model(
-            c, model or DEFAULT_MODEL, messages, budget, _em)
+            c, model or DEFAULT_MODEL, messages, budget, _em, brain=brain or "")
         if txt and usable_answer(txt, strict=False):
             return txt
     out = await horde_generate(c, messages, budget, on_progress)
@@ -5699,6 +5771,9 @@ class ChatReq(BaseModel):
     confirm: bool = Field(False, description="Confirm a destructive command")
     model: Optional[str] = Field(None, description="adelte-search | "
                                  "adelte-coder-3high | adelte-minimax")
+    brain: Optional[str] = Field(None, description="Direct engine override, "
+                                 "'provider:model' — e.g. 'groq:llama-3.3-70b-versatile'. "
+                                 "Must be key-ready or it is ignored.")
 
 
 class KeyReq(BaseModel):
@@ -5951,11 +6026,68 @@ async def models_list():
                     "ready": True if local else any(c["ready"] for c in chain),
                     "chain": chain})
     prov = [{"id": pid, "label": p["label"], "env": p["env"],
-             "ready": provider_ready(pid), "key": mask(env_key(p["env"]))}
+             "ready": provider_ready(pid), "key": mask(env_key(p["env"])),
+             "color": PROVIDER_BRAND.get(pid, {}).get("color", "#4F8DFD"),
+             "glow": PROVIDER_BRAND.get(pid, {}).get("glow", "#1E4FBF"),
+             "mark": PROVIDER_BRAND.get(pid, {}).get("mark", "?"),
+             "logo": PROVIDER_BRAND.get(pid, {}).get("logo", ""),
+             "logo_md": PROVIDER_LOGO_MD.get(pid, "")}
             for pid, p in PROVIDERS.items()]
     return {"models": out, "default": DEFAULT_MODEL, "providers": prov,
             "env_file": str(HERE / ".env"),
             "env_found": (HERE / ".env").exists()}
+
+
+@app.get("/api/models/raw", tags=["models"])
+async def models_raw():
+    """Every individual engine a key unlocks — the 'use any model' picker.
+
+    Returns flat provider:model entries with ready flags and brand badges,
+    so the UI can offer any specific brain (not just the 5 ADELTE personas).
+    Chosen via the `brain` field on /api/chat and /api/chat/stream.
+    """
+    out = []
+    for pid, p in PROVIDERS.items():
+        brand = PROVIDER_BRAND.get(pid, {})
+        if pid == "horde":
+            out.append({"id": "horde:free-swarm", "provider": pid,
+                        "label": p["label"], "model": "free-swarm",
+                        "ready": True, "free": True,
+                        "color": brand.get("color"), "glow": brand.get("glow"),
+                        "mark": brand.get("mark"), "logo": brand.get("logo", ""),
+                        "logo_md": PROVIDER_LOGO_MD.get(pid, "")})
+            continue
+        ready = provider_ready(pid)
+        for mo in p.get("models", []):
+            out.append({"id": "%s:%s" % (pid, mo), "provider": pid,
+                        "label": p["label"], "model": mo, "ready": ready,
+                        "free": ("free" in mo.lower()),
+                        "color": brand.get("color"), "glow": brand.get("glow"),
+                        "mark": brand.get("mark"), "logo": brand.get("logo", ""),
+                        "logo_md": PROVIDER_LOGO_MD.get(pid, "")})
+    return {"ok": True, "count": len(out),
+            "ready": sum(1 for e in out if e["ready"]), "brains": out}
+
+
+ADELTE_LOGO_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+<defs><linearGradient id="ag" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#00E5FF"/><stop offset=".52" stop-color="#A855F7"/>
+<stop offset="1" stop-color="#FF2D95"/></linearGradient>
+<radialGradient id="ao" cx=".5" cy=".42" r=".55">
+<stop offset="0" stop-color="#FFFFFF" stop-opacity=".95"/>
+<stop offset=".45" stop-color="#C4B5FD"/><stop offset="1" stop-color="#4C1D95"/>
+</radialGradient></defs>
+<polygon points="64,6 114,35 114,93 64,122 14,93 14,35" fill="none" stroke="url(#ag)" stroke-width="7" stroke-linejoin="round"/>
+<circle cx="64" cy="64" r="30" fill="url(#ao)"/>
+<circle cx="52" cy="52" r="9" fill="#FFFFFF" opacity=".55"/>
+<path d="M64 44 L78 88 M64 44 L50 88 M57 66 h14" stroke="#0B0D17" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>"""
+
+
+@app.get("/logo.svg", include_in_schema=False)
+async def logo_svg():
+    """The new ADELTE mark as a standalone file (favicon, embeds, sharing)."""
+    return Response(content=ADELTE_LOGO_SVG, media_type="image/svg+xml")
 
 
 @app.get("/api/engines")
@@ -6991,7 +7123,8 @@ async def chat(req: ChatReq, x_api_key: Optional[str] = Header(None),
             msgs.append({"role": h["role"], "content": h["content"][:1400]})
         msgs.append({"role": "user", "content": req.message})
         text = await ai_answer(CLIENT, msgs, max(req.ai_budget, 45),
-                               model=req.model) or \
+                               model=req.model,
+                               brain=req.brain or "") or \
             friend_reply(req.message, STORE.history(sid))
         STORE.add_turn(sid, "user", req.message)
         STORE.add_turn(sid, "assistant", text)
@@ -7021,8 +7154,9 @@ async def chat(req: ChatReq, x_api_key: Optional[str] = Header(None),
                       " You are ADELTE, made by ADELTE Industries. Answer "
                       "directly and usefully; if the request is vague give "
                       "your best concrete answer and ask one short question."},
-                     {"role": "user", "content": req.message}],
-                    max(req.ai_budget, 30), model=req.model) or \
+                      {"role": "user", "content": req.message}],
+                     max(req.ai_budget, 30), model=req.model,
+                     brain=req.brain or "") or \
                     friend_reply(req.message, STORE.history(sid))
         else:
             _ref = wants_refine(req.message, _prev_code)
@@ -7042,7 +7176,8 @@ async def chat(req: ChatReq, x_api_key: Optional[str] = Header(None),
                     CLIENT,
                     [{"role": "system", "content": _sys},
                      {"role": "user", "content": _um}],
-                    max(req.ai_budget, 45), model=req.model) or \
+                     max(req.ai_budget, 45), model=req.model,
+                     brain=req.brain or "") or \
                 "The AI layer is busy — try again."
         STORE.add_turn(sid, "user", req.message)
         STORE.add_turn(sid, "assistant", text)
@@ -7074,7 +7209,8 @@ async def chat(req: ChatReq, x_api_key: Optional[str] = Header(None),
     msgs = build_messages(req.message, sources, hist, memory)
 
     answer, _who = await generate_with_model(
-        CLIENT, req.model or DEFAULT_MODEL, msgs, req.ai_budget)
+        CLIENT, req.model or DEFAULT_MODEL, msgs, req.ai_budget,
+        brain=req.brain or "")
     mode = "ai"
     if not answer:
         answer = extractive_answer(search_q, sources, memory)
@@ -7275,7 +7411,7 @@ async def chat_stream(req: ChatReq, request: Request,
                 cmsgs.append({"role": "user", "content": req.message})
                 text, _who2 = await generate_with_model(
                     CLIENT, req.model or DEFAULT_MODEL, cmsgs,
-                    max(req.ai_budget, 30), emit)
+                    max(req.ai_budget, 30), emit, brain=req.brain or "")
                 while not q.empty():
                     ev, data = q.get_nowait()
                     yield sse(ev, data)
@@ -7320,7 +7456,7 @@ async def chat_stream(req: ChatReq, request: Request,
                                    "p": 60, "phase": "sending"})
             txt, who = await generate_with_model(
                 CLIENT, req.model or DEFAULT_MODEL, msgs,
-                max(req.ai_budget, 45), emit)
+                max(req.ai_budget, 45), emit, brain=req.brain or "")
             if not txt and not REFINING:
                 _lb = offline_build(req.message)
                 if _lb:
@@ -7402,7 +7538,7 @@ async def chat_stream(req: ChatReq, request: Request,
                              for h in hist_b]
             txt, who = await generate_with_model(
                 CLIENT, req.model or DEFAULT_MODEL, msgs,
-                max(req.ai_budget, 45), emit)
+                max(req.ai_budget, 45), emit, brain=req.brain or "")
             while not q.empty():
                 ev, data = q.get_nowait()
                 yield sse(ev, data)
@@ -7504,7 +7640,7 @@ async def chat_stream(req: ChatReq, request: Request,
                         await pq.put(data)
                 txt, who = await generate_with_model(
                     CLIENT, req.model or DEFAULT_MODEL, msgs,
-                    req.ai_budget, em)
+                    req.ai_budget, em, brain=req.brain or "")
                 await pq.put({"_result": txt})
             except Exception:
                 await pq.put({"_result": None})
