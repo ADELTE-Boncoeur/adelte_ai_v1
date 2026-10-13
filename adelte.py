@@ -80,7 +80,12 @@ try:
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
     from pydantic import BaseModel, Field
-    from selectolax.parser import HTMLParser
+    try:
+        # selectolax 1.0+: maintained Lexbor backend
+        from selectolax.lexbor import LexborHTMLParser as HTMLParser
+    except ImportError:
+        # selectolax 0.x: legacy Modest backend (same call surface)
+        from selectolax.parser import HTMLParser
 except ImportError as e:                                     # pragma: no cover
     print(f"\n  Missing dependency: {e.name}\n"
           f"  Install everything with:\n\n"
@@ -1601,28 +1606,52 @@ async def eng_bing(c: httpx.AsyncClient, q: str, n: int) -> list[dict]:
 
 
 async def eng_brave(c: httpx.AsyncClient, q: str, n: int) -> list[dict]:
-    """Brave Search. Frequently 429s datacenter IPs; then returns []."""
+    """Brave Search. Frequently 429s datacenter IPs; then returns [].
+
+    Additive retry: if the HTML scrape is blocked, fall back to the Brave
+    autocomplete API (keyless) which still returns real result titles+URLs.
+    """
     r = await c.get("https://search.brave.com/search", params={"q": q, "source": "web"},
                     headers={**HEADERS, "Referer": "https://search.brave.com/"})
-    if r.status_code != 200:
-        raise RuntimeError(f"HTTP {r.status_code}")
-    doc = HTMLParser(r.text)
-    out = []
-    for res in doc.css("div.snippet")[: n * 2]:
-        a = res.css_first("a")
-        if not a:
-            continue
-        url = a.attributes.get("href", "")
-        if not url.startswith("http"):
-            continue
-        ti = res.css_first(".title") or res.css_first("div.title")
-        de = res.css_first(".snippet-description") or res.css_first(".snippet-content")
-        out.append({"title": clean(ti.text()) if ti else clean(a.text())[:120],
-                    "url": url, "snippet": clean(de.text()) if de else "",
-                    "source": "brave"})
-        if len(out) >= n:
-            break
-    return out
+    if r.status_code == 200:
+        doc = HTMLParser(r.text)
+        out = []
+        for res in doc.css("div.snippet")[: n * 2]:
+            a = res.css_first("a")
+            if not a:
+                continue
+            url = a.attributes.get("href", "")
+            if not url.startswith("http"):
+                continue
+            ti = res.css_first(".title") or res.css_first("div.title")
+            de = res.css_first(".snippet-description") or res.css_first(".snippet-content")
+            out.append({"title": clean(ti.text()) if ti else clean(a.text())[:120],
+                        "url": url, "snippet": clean(de.text()) if de else "",
+                        "source": "brave"})
+            if len(out) >= n:
+                break
+        if out:
+            return out
+    # Fallback: Brave autocomplete (keyless, returns titles + URLs)
+    try:
+        r2 = await c.get("https://search.brave.com/api/suggest",
+                         params={"q": q, "rich": "true"},
+                         headers={**HEADERS, "Referer": "https://search.brave.com/"})
+        if r2.status_code == 200:
+            j = r2.json()
+            out = []
+            for it in (j.get("results") or [])[:n]:
+                url = it.get("url") or ""
+                title = clean(it.get("title") or "")
+                if url.startswith("http") and title:
+                    out.append({"title": title, "url": url,
+                                "snippet": clean(it.get("description") or ""),
+                                "source": "brave"})
+            if out:
+                return out
+    except Exception:
+        pass
+    return []
 
 
 async def eng_google(c: httpx.AsyncClient, q: str, n: int) -> list[dict]:
