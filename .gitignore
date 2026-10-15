@@ -2,6 +2,7 @@
 .env
 adelte.env
 new_api
+new_api.json
 *.db
 *.db-wal
 *.db-shm
