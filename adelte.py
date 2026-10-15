@@ -161,7 +161,7 @@ def load_env() -> Dict[str, str]:
               "TOGETHER_API_KEY", "CEREBRAS_API_KEY", "MISTRAL_API_KEY",
               "OPENAI_API_KEY", "OPENAI_API_KEY_POOL", "CLARIFAI_PAT",
               "GOOGLE_CUSTOM_SEARCH_API_KEY", "GOOGLE_SEARCH_ENGINE_ID",
-              "TELEGRAM_BOT_TOKEN", "SPICE_AI_API_KEY", "DATABRICKS_HOST",
+              "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID", "SPICE_AI_API_KEY", "DATABRICKS_HOST",
               "DATABRICKS_TOKEN", "SQL_DB_CONN_STR"):
         v = os.environ.get(k)
         if v and v.strip() and v.strip().lower() not in (
