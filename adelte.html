@@ -1463,8 +1463,6 @@ input.sw:checked::after{transform:translateX(17px)}
           <span class="secn" id="braincount">0</span>
         </div>
         <div class="card">
-          <p>Skip the chain and talk to <b>any single engine</b> directly.
-             The ADELTE model still sets the style — the brain sets the muscle.</p>
           <label class="fld">
             <span>Engine override</span>
             <select id="brainpick" title="Use any connected model directly">
@@ -1481,8 +1479,6 @@ input.sw:checked::after{transform:translateX(17px)}
           <span class="secn" id="integcount">0</span>
         </div>
         <div class="card">
-          <p>Every API key on the server, with its badge. Green answers,
-             grey is skipped — nothing breaks either way.</p>
           <div class="integlist" id="integlist"></div>
           <button class="btn" id="integtest">
             <svg class="i"><use href="#i-play"/></svg>Test all live</button>
@@ -1496,7 +1492,6 @@ input.sw:checked::after{transform:translateX(17px)}
           <span class="secn" id="promptcount">0</span>
         </div>
         <div class="card">
-          <p>Tap a card — it lands in the composer ready to send.</p>
           <div class="promptlib" id="promptlib"></div>
         </div>
       </div>
@@ -4973,6 +4968,21 @@ html[data-contrast="1"] .bub{border-width:2px}
   background:var(--panel);border:1px solid var(--line);color:var(--tx2)}
 #axbacktop.show{display:grid}
 #axbacktop:hover{border-color:var(--violet);color:var(--tx)}
+/* ---- sidebar hide/unhide: full-width focus mode, remembered ---- */
+.app.axshut{grid-template-columns:0 1fr}
+.app.axshut .side{visibility:hidden;opacity:0;min-width:0;
+  transition:opacity .25s,visibility .25s}
+.side{transition:opacity .25s,visibility .25s}
+#axshow{position:fixed;left:14px;top:70px;z-index:950;display:none;
+  width:38px;height:38px;border-radius:12px;
+  background:var(--panel);border:1px solid var(--line);color:var(--tx2)}
+#axshow.show{display:grid;place-items:center}
+#axshow:hover{border-color:var(--violet);color:var(--tx)}
+#axshow svg{width:17px;height:17px}
+/* ---- civilized settings: labelled sections ---- */
+.axsec{font-size:10.5px;font-weight:800;letter-spacing:.7px;
+  text-transform:uppercase;color:var(--tx3);margin:12px 0 7px}
+.axsec:first-child{margin-top:0}
 .galgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .galcard{border:1px solid var(--line);border-radius:12px;overflow:hidden;
   background:var(--bg);transition:.16s}
@@ -8360,45 +8370,94 @@ function axSettingsTools(){
   }catch(e){}
 }
 
-/* ---------- quick actions bar (floating, bottom-right) ------------------- */
-var AX_QA=[
- {k:'Time',run:function(){setComposer('what time is it');}},
- {k:'Date',run:function(){setComposer('what is the date');}},
- {k:'Lock',run:function(){setComposer('lock pc');}},
- {k:'Specs',run:function(){setComposer('specs');}},
- {k:'IP',run:function(){setComposer('publicip');}},
- {k:'Battery',run:function(){setComposer('battery');}},
- {k:'Export',run:function(){axExport('md');}},
- {k:'Help',run:function(){axHelp(true);}},
- {k:'Palette',run:function(){axPalette(true);}}];
-function axQuickActions(){
-  if($('axqa')) return;
-  try{
-    var bar=document.createElement('div');
-    bar.id='axqa';
-    bar.style.cssText='position:fixed;right:14px;bottom:14px;z-index:1200;'+
-      'display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;max-width:340px';
-    AX_QA.forEach(function(a){
-      var b=document.createElement('button');
-      b.className='btn'; b.style.cssText='width:auto;padding:6px 10px;'+
-        'font-size:11px;border-radius:99px';
-      b.textContent=a.k; b.title=a.k;
-      b.onclick=function(){a.run();};
-      bar.appendChild(b);
-    });
-    document.body.appendChild(bar);
-  }catch(e){}
+/* ---------- boot ---------- */
+function axBoot5(){
+  axSettingsTools();
+  setInterval(axSettingsTools,5000);
 }
 
 /* ---------- boot ---------- */
 function axBoot5(){
   axSettingsTools();
-  axQuickActions();
   setInterval(axSettingsTools,5000);
 }
 if(document.readyState==='loading')
   document.addEventListener('DOMContentLoaded',axBoot5);
 else axBoot5();
+})();
+</script>
+<script>
+/* ============================================================
+   ADELTE X dashboard — sidebar hide/unhide, civilized settings.
+   ============================================================ */
+(function(){
+'use strict';
+function $(id){return document.getElementById(id);}
+function toastm(t){try{if(typeof window.toast==='function')window.toast(t,'ok');}catch(e){}}
+
+/* ---------- sidebar hide / unhide (persisted) --------------------------- */
+function axSide(shut,quiet){
+  var app=document.querySelector('.app'); if(!app) return;
+  app.classList.toggle('axshut',!!shut);
+  var sh=$('axshow'); if(sh) sh.classList.toggle('show',!!shut);
+  try{localStorage.setItem('ax_side',shut?'shut':'open');}catch(e){}
+  if(!quiet) toastm(shut?'Sidebar hidden — full focus mode':'Sidebar back');
+}
+function axSideUI(){
+  try{
+    var top=document.querySelector('.top'); 
+    if(top&&!$('axhide')){
+      var b=document.createElement('button');
+      b.className='icobtn'; b.id='axhide'; b.title='Hide sidebar';
+      b.innerHTML='<svg class="i" style="width:15px;height:15px"><use href="#i-menu"/></svg>';
+      b.onclick=function(){axSide(true);};
+      top.insertBefore(b,top.firstChild);
+    }
+    if(!$('axshow')){
+      var s=document.createElement('button');
+      s.id='axshow'; s.title='Show sidebar';
+      s.innerHTML='<svg class="i"><use href="#i-menu"/></svg>';
+      s.onclick=function(){axSide(false);};
+      document.body.appendChild(s);
+    }
+    var saved='open';
+    try{saved=localStorage.getItem('ax_side')||'open';}catch(e){}
+    axSide(saved==='shut',true);
+  }catch(e){}
+}
+
+/* ---------- civilized settings: labelled sections ----------------------- */
+function axCivilize(){
+  try{
+    var th=$('axthemes');
+    if(th&&!th.querySelector('.axsec')){
+      var h=document.createElement('div');
+      h.className='axsec'; h.textContent='Appearance';
+      th.insertBefore(h,th.firstChild);
+    }
+    var st=$('axsettools');
+    if(st&&!st.previousElementSibling?.classList?.contains('axsec')){
+      var h2=document.createElement('div');
+      h2.className='axsec'; h2.textContent='Backup';
+      st.parentNode.insertBefore(h2,st);
+    }
+    var fminus=$('axfont-');
+    if(fminus&&!$('axtextsec')){
+      var h3=document.createElement('div');
+      h3.className='axsec'; h3.id='axtextsec'; h3.textContent='Text size';
+      fminus.parentNode.parentNode.insertBefore(h3,fminus.parentNode);
+    }
+  }catch(e){}
+}
+
+/* ---------- boot ---------- */
+function axBoot6(){
+  axSideUI(); axCivilize();
+  setInterval(axCivilize,4000);
+}
+if(document.readyState==='loading')
+  document.addEventListener('DOMContentLoaded',axBoot6);
+else axBoot6();
 })();
 </script>
 <script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2aaa8ab2c61b970',t:'MTc4NjY1NDkyNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
